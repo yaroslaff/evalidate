@@ -7,8 +7,8 @@ Evalidate is simple python module for safe eval()'uating user-supplied (possible
     src="a+b"
     c={'a': 1, 'b': 2}
 
-    s,r = evalidate.safeeval(src,c)
-    if s:
-        print r
+    success,result = evalidate.safeeval(src,c)
+    if success:
+        print result
     else:
-        print "ERROR:",r
+        print "ERROR:",result

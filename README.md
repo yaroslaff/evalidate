@@ -39,7 +39,8 @@ In case of dangerous code:
     
     
 output will be:
-    ERROR: Compilation error: Operaton type Call is not allowed
+
+    ERROR: Validation error: Operaton type Call is not allowed
     
 # Extending evalidate, safenodes and addnodes
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument *safenodes* like:
@@ -48,13 +49,15 @@ Evalidate has built-in set of python operations, which are considered 'safe' (fr
 
 this will be enough for '1+1' expression (in src argument), but not for '1-1'. If you will try '1-1', it will report error:
 
-    ERROR: Compilation error: Operaton type Sub is not allowed.
+    ERROR: Validation error: Operaton type Sub is not allowed
+
 
 This way you can start from scratch and allow only required operations. As an alternative, you can use built-in list of allowed operations and extend it if needed, using *addnodes* argument.
 
 For example, "1*1" will give error:
 
-  ERROR: Compilation error: Operaton type Mult is not allowed
+  ERROR: Validation error: Operaton type Mult is not allowed
+
 
 But it will work with addnodes:
 
@@ -65,7 +68,6 @@ Please note, using 'Mult' operation isn't very secure, because for strings it ca
     src='"a"=="a"*100*100*100*100*100'
     
     ERROR: Runtime error (OverflowError): repeated string is too long
-
     
 # Functions
 
@@ -89,6 +91,9 @@ evalidate() performs parsing of python expession, validates it, and returns pyth
 
     code = compile(node,'<usercode>','eval')
     eval(code)
+    
+    
+evalidate() throws ValueError if it diesn't likes sourcecode (if it has unsafe operations).
     
 Even if evalidate is successful, this doesn't guarantees that code will run well, For example, if can have NameError (if tries to access undefined variable) or ZeroDivisionError.
 

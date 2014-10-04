@@ -46,11 +46,14 @@ def evalidate(expression,safenodes=None,addnodes=None):
 def safeeval(src,context={}, safenodes=None, addnodes=None):
     try:
         node=evalidate(src, safenodes, addnodes)
-    except ValueError as ve:
-        return (False,"Compilation error: "+ve.__str__())
-    except SyntaxError as se:
-        return (False,"Compilation error: "+se.__str__())
-    code = compile(node,'<usercode>','eval')
+    except Exception as e:
+        return (False,"Validation error: "+e.__str__())
+
+    try:
+        code = compile(node,'<usercode>','eval')
+    except Exception as e:
+         return (False,"Compile error: "+e.__str__())
+        
 
     try:
         result = eval(code,context)

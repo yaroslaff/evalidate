@@ -3,6 +3,8 @@
 import ast
 import sys
 
+version='0.3'
+
 class SafeAST(ast.NodeVisitor):
 
     allowed = {}

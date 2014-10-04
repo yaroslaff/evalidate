@@ -2,7 +2,7 @@
 Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) code.
 
 # Examples
-<code>
+`
 import evalidate
 
 src="a+b"
@@ -13,4 +13,4 @@ if s:
     print r
 else:
     print "ERROR:",r
-</code>
+`

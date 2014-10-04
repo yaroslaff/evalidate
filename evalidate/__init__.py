@@ -8,8 +8,8 @@ class SafeAST(ast.NodeVisitor):
     allowed = {}
     
     def __init__(self,safenodes=None,addnodes=None):
-
-        if safenodes:
+        
+        if safenodes != None:
             self.allowed=safenodes
         else:
             values=['Num','Str'] # 123, 'asdf'
@@ -24,7 +24,7 @@ class SafeAST(ast.NodeVisitor):
             self.allowed = expression+values+compare+variables+binop+arithmetics+subscript+boolop+inop
 
 
-        if addnodes:
+        if addnodes != None:
             self.allowed = self.allowed + addnodes
 
     def generic_visit(self, node):
@@ -47,7 +47,6 @@ def safeeval(src,context={}, safenodes=None, addnodes=None):
     try:
         node=evalidate(src, safenodes, addnodes)
     except ValueError as ve:
-        print "ValueError:",ve
         return (False,"Compilation error: "+ve.__str__())
     except SyntaxError as se:
         return (False,"Compilation error: "+se.__str__())

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='evalidate',
-      version='0.1',
+      version='0.2',
       description='Eval code validator',
       url='https://bitbucket.org/yaroslaff/evalidate',
       author='Yaroslav Polyakov',

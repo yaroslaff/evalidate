@@ -14,7 +14,7 @@ But also, it can be used for other expressions, e.g. arithmetical, like
     a+b-100
     
 # Security
-Built-in python features such as compile, eval is quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like os.system("rm -rf /"). Evalidate works on whitelist principle, allowing code only if it consist only  of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
+Built-in python features such as compile() or eval() is quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like os.system("rm -rf /"). Evalidate works on whitelist principle, allowing code only if it consist only  of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
 
 # Examples
     import evalidate

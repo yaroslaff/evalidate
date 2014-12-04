@@ -96,3 +96,6 @@ evalidate() performs parsing of python expession, validates it, and returns pyth
 evalidate() throws ValueError if it doesn't like source code (if it has unsafe operations).
     
 Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisionError.
+
+# Contact
+Write me: yaroslaff@gmail.com

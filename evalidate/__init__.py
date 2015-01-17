@@ -58,7 +58,8 @@ def safeeval(src,context={}, safenodes=None, addnodes=None):
         
 
     try:
-        result = eval(code,context)
+        wcontext=context.copy()
+        result = eval(code,wcontext)
     except Exception as e:
         et,ev,erb = sys.exc_info()
         return False,"Runtime error ({}): {}".format(type(e).__name__,ev)
@@ -68,24 +69,40 @@ def safeeval(src,context={}, safenodes=None, addnodes=None):
 
 
 if __name__=='__main__':
-    src='i[bbb]'
 
-    i={}
-    i['name']="hello"
-    i['age']=33
-    i['child']=["aaa","bbb","ccc"]
-    i['a']={}
-    i['a']['one']='one'
-    i['a']['two']=2
+    books = [
+        {
+            'title': 'The Sirens of Titan',
+            'author': 'Kurt Vonnegut',
+            'stock': 10,
+            'price': 9.71
+        },
+        {
+            'title': 'Cat\'s Cradle',
+            'author': 'Kurt Vonnegut',
+            'stock': 2,
+            'price': 4.23
+        },
+        {
+            'title': 'Chapaev i Pustota',
+            'author': 'Victor Pelevin',
+            'stock': 0,
+            'price': 21.33
+        },
+        {
+            'title': 'Gone Girl',
+            'author': 'Gillian Flynn',
+            'stock': 5,
+            'price': 8.97
+        },
+    ]
 
-    env={'a':22,'b':33,'c': 55,'i':i,'hello':'hello','time':100,'now':200}   
-    
-
-    print "src: ",src
-    print "env: ",env
-    success,result = safeeval(src,env)
-    
-    if success:
-        print "result: ",result 
-    else:
-        print "ERR: ",result
+    src='stock>=5 and not price>9'
+       
+    for book in books:
+        success,result = safeeval(src,book)   
+        if success:
+            if result:
+                print book
+        else:
+            print "ERR: ",result

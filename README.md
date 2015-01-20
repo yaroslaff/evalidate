@@ -206,6 +206,8 @@ except ValueError:
     print "Bad source code:", src
 ```    
              
+# More info #
+Want more info? Check source code of module, it's very short and simple, easy to modify
 
 # Contact #
 Write me: yaroslaff@gmail.com

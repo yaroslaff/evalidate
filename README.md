@@ -1,6 +1,9 @@
-﻿Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
+﻿Evalidate
+===
+Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
 
-# Purpose #
+Purpose
+---
 Originally it's developed for filtering (performing boolean expressions) complex data structures e.g. raise salary if 
 
 ```python
@@ -16,15 +19,18 @@ But also, it can be used for other expressions, e.g. arithmetical, like
 a+b-100
 ```
 
-# Install #
+Install
+---
 ```shell
 pip install evalidate
 ```
     
-# Security #
+Security
+---
 Built-in python features such as compile() or eval() is quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like os.system("rm -rf /"). Evalidate works on whitelist principle, allowing code only if it consist only  of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
 
-# Examples #
+Very basic example
+---
 ```python
 import evalidate
 
@@ -78,8 +84,10 @@ src='"a"=="a"*100*100*100*100*100'
 ```    
     ERROR: Runtime error (OverflowError): repeated string is too long
     
-# Functions #
-## safeeval() ##
+Functions
+---
+
+### safeeval()
 
 ```python
 success,result = safeeval(src,context={}, safenodes=None, addnodes=None)
@@ -98,7 +106,8 @@ return values:
 *result* - if success==True, result is result of expression. If success==False, result is string with error message, like "ERROR: Runtime error (NameError): name 'aaa' is not defined"
     
 safeeval doesn't throws any exceptions    
-## evalidate() ##    
+
+### evalidate()     
 ```python
 node = evalidate(expression,safenodes=None,addnodes=None)
 ```
@@ -112,9 +121,10 @@ evalidate() throws ValueError if it doesn't like source code (if it has unsafe o
     
 Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisionError.
 
-# Examples #
+Examples
+---
 
-## Filtering by user-supplied condition ##
+### Filtering by user-supplied condition ###
 ```python
 import evalidate
     
@@ -165,7 +175,7 @@ With second src line ('stock>0 and price>8') it gives:
     
 
 
-## Data as objects ##
+### Data as objects ###
 Data represented as object with attributes (not as dictionary) (we have to add 'Attribute' to safe nodes). Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
 ```python
 import evalidate
@@ -188,7 +198,7 @@ else:
     print "ERR:", result
 ```
                         
-## Validate, compile and evaluate code ##
+### Validate, compile and evaluate code ###
 ```python
 import evalidate
 import os
@@ -206,8 +216,10 @@ except ValueError:
     print "Bad source code:", src
 ```    
              
-# More info #
+More info
+---
 Want more info? Check source code of module, it's very short and simple, easy to modify
 
-# Contact #
+Contact
+---
 Write me: yaroslaff@gmail.com

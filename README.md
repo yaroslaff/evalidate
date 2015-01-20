@@ -1,6 +1,4 @@
-﻿# About Evalidate #
-
-Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
+﻿Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
 
 # Purpose #
 Originally it's developed for filtering (performing boolean expressions) complex data structures e.g. raise salary if 

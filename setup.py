@@ -1,9 +1,9 @@
 from setuptools import setup
 
 setup(name='evalidate',
-      version='0.4',
+      version='0.5',
       description='Eval code validator',
-      url='https://bitbucket.org/yaroslaff/evalidate',
+      url='http://evalidate.readthedocs.org/',
       author='Yaroslav Polyakov',
       author_email='xenon@sysattack.com',
       license='MIT',

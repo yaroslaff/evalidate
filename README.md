@@ -1,7 +1,7 @@
-﻿# About Evalidate
+﻿# About Evalidate #
 Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
 
-# Purpose
+# Purpose #
 Originally it's developed for filtering (performing boolean expressions) complex data structures e.g. raise salary if 
 
 ```python
@@ -17,15 +17,15 @@ But also, it can be used for other expressions, e.g. arithmetical, like
 a+b-100
 ```
 
-# Install
+# Install #
 ```shell
 pip install evalidate
 ```
     
-# Security
+# Security #
 Built-in python features such as compile() or eval() is quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like os.system("rm -rf /"). Evalidate works on whitelist principle, allowing code only if it consist only  of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
 
-# Examples
+# Examples #
 ```python
 import evalidate
 
@@ -52,7 +52,7 @@ output will be:
 
     ERROR: Validation error: Operaton type Call is not allowed
     
-# Extending evalidate, safenodes and addnodes
+# Extending evalidate, safenodes and addnodes #
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this lisst. You can override this list by adding argument *safenodes* like:
 ```python
 success,result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
@@ -79,9 +79,12 @@ src='"a"=="a"*100*100*100*100*100'
 ```    
     ERROR: Runtime error (OverflowError): repeated string is too long
     
-# Functions
+# Functions #
+## safeeval() ##
 
-## success,result = safeeval(src,context={}, safenodes=None, addnodes=None)
+```python
+success,result = safeeval(src,context={}, safenodes=None, addnodes=None)
+```
 
 *safeeval* - is higher-level function of module, which validates code and runs it (if validation is successful)
 
@@ -96,8 +99,10 @@ return values:
 *result* - if success==True, result is result of expression. If success==False, result is string with error message, like "ERROR: Runtime error (NameError): name 'aaa' is not defined"
     
 safeeval doesn't throws any exceptions    
-    
-## node = evalidate(expression,safenodes=None,addnodes=None)
+## evalidate() ##    
+```python
+node = evalidate(expression,safenodes=None,addnodes=None)
+```
 evalidate() performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
 ```python            
 code = compile(node,'<usercode>','eval')
@@ -108,9 +113,9 @@ evalidate() throws ValueError if it doesn't like source code (if it has unsafe o
     
 Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisionError.
 
-# Examples
+# Examples #
 
-## Filtering by user-supplied condition:
+## Filtering by user-supplied condition ##
 ```python
 import evalidate
     
@@ -161,7 +166,7 @@ With second src line ('stock>0 and price>8') it gives:
     
 
 
-## Data as objects
+## Data as objects ##
 Data represented as object with attributes (not as dictionary) (we have to add 'Attribute' to safe nodes). Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
 ```python
 import evalidate
@@ -184,7 +189,7 @@ else:
     print "ERR:", result
 ```
                         
-## Validate, compile and evaluate code
+## Validate, compile and evaluate code ##
 ```python
 import evalidate
 import os
@@ -203,5 +208,5 @@ except ValueError:
 ```    
              
 
-# Contact
+# Contact #
 Write me: yaroslaff@gmail.com

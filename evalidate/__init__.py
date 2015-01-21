@@ -1,74 +1,89 @@
 #!/usr/bin/python
 
+"""Safe user-supplied python expression evaluation."""
+
 import ast
 import sys
 
-version='0.3'
+version = '0.3'
+
 
 class SafeAST(ast.NodeVisitor):
 
+    """AST-tree walker class."""
+
     allowed = {}
-    
-    def __init__(self,safenodes=None,addnodes=None):
-        
-        if safenodes != None:
-            self.allowed=safenodes
+
+    def __init__(self, safenodes=None, addnodes=None):
+        """create whitelist of allowed operations."""
+        if safenodes is not None:
+            self.allowed = safenodes
         else:
-            values=['Num','Str'] # 123, 'asdf'
-            expression=['Expression'] # any expression
-            compare=['Compare','Eq','NotEq','Gt','GtE','Lt','LtE'] # ==
-            variables=['Name','Load'] # variable name
-            binop=['BinOp']
-            arithmetics=['Add','Sub']
-            subscript=['Subscript','Index'] # person['name']
-            boolop=['BoolOp','And','Or','UnaryOp','Not'] # True and True
-            inop=["In"] # "aaa" in i['list']
-            self.allowed = expression+values+compare+variables+binop+arithmetics+subscript+boolop+inop
+            # 123, 'asdf'
+            values = ['Num', 'Str']
+            # any expression
+            expression = ['Expression']
+            # == ...
+            compare = ['Compare', 'Eq', 'NotEq', 'Gt', 'GtE', 'Lt', 'LtE']
+            # variable name
+            variables = ['Name', 'Load']
+            binop = ['BinOp']
+            arithmetics = ['Add', 'Sub']
+            subscript = ['Subscript', 'Index']  # person['name']
+            boolop = ['BoolOp', 'And', 'Or', 'UnaryOp', 'Not']  # True and True
+            inop = ["In"]  # "aaa" in i['list']
+            self.allowed = expression + values + compare + variables + binop + \
+                arithmetics + subscript + boolop + inop
 
-
-        if addnodes != None:
+        if addnodes is not None:
             self.allowed = self.allowed + addnodes
 
     def generic_visit(self, node):
-
+        """Check node, rais exception is node is not in whitelist."""
         if type(node).__name__ in self.allowed:
-            #print "GOOD GENERIC ", type(node).__name__
             ast.NodeVisitor.generic_visit(self, node)
         else:
-            raise ValueError("Operaton type {optype} is not allowed".format(optype=type(node).__name__))
+            raise ValueError(
+                "Operaton type {optype} is not allowed".format(
+                    optype=type(node).__name__))
 
 
-def evalidate(expression,safenodes=None,addnodes=None):
-    node = ast.parse(expression,'<usercode>','eval')
+def evalidate(expression, safenodes=None, addnodes=None):
+    """Validate expression.
 
-    v = SafeAST(safenodes,addnodes)
+    return node if it passes our checks
+    or pass exception from SafeAST visit.
+    """
+    node = ast.parse(expression, '<usercode>', 'eval')
+
+    v = SafeAST(safenodes, addnodes)
     v.visit(node)
     return node
 
-def safeeval(src,context={}, safenodes=None, addnodes=None):
-    try:
-        node=evalidate(src, safenodes, addnodes)
-    except Exception as e:
-        return (False,"Validation error: "+e.__str__())
 
+def safeeval(src, context={}, safenodes=None, addnodes=None):
+    """C-style simplified wrapper, eval() replacement."""
     try:
-        code = compile(node,'<usercode>','eval')
+        node = evalidate(src, safenodes, addnodes)
     except Exception as e:
-         return (False,"Compile error: "+e.__str__())
-        
+        return (False, "Validation error: "+e.__str__())
 
     try:
-        wcontext=context.copy()
-        result = eval(code,wcontext)
+        code = compile(node, '<usercode>', 'eval')
     except Exception as e:
-        et,ev,erb = sys.exc_info()
-        return False,"Runtime error ({}): {}".format(type(e).__name__,ev)
-       
+        return (False, "Compile error: "+e.__str__())
 
-    return (True,result)
+    try:
+        wcontext = context.copy()
+        result = eval(code, wcontext)
+    except Exception as e:
+        et, ev, erb = sys.exc_info()
+        return False, "Runtime error ({}): {}".format(type(e).__name__, ev)
+
+    return(True, result)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
 
     books = [
         {
@@ -97,12 +112,12 @@ if __name__=='__main__':
         },
     ]
 
-    src='stock>=5 and not price>9'
-       
+    src = 'stock>=5 and not price>9'
+
     for book in books:
-        success,result = safeeval(src,book)   
+        success, result = safeeval(src, book)
         if success:
             if result:
                 print book
         else:
-            print "ERR: ",result
+            print "ERR: ", result

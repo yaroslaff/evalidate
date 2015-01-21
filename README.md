@@ -93,7 +93,7 @@ Functions
 success,result = safeeval(src,context={}, safenodes=None, addnodes=None)
 ```
 
-*safeeval* - is higher-level function of module, which validates code and runs it (if validation is successful)
+*safeeval* is C-style higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful)
 
 *src* - source expression like "person['Age']>30 and salary==10000"
 
@@ -105,21 +105,21 @@ return values:
 
 *result* - if success==True, result is result of expression. If success==False, result is string with error message, like "ERROR: Runtime error (NameError): name 'aaa' is not defined"
     
-safeeval doesn't throws any exceptions    
+safeeval doesn't throws any exceptions
 
 ### evalidate()     
 ```python
 node = evalidate(expression,safenodes=None,addnodes=None)
 ```
-evalidate() performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
+evalidate() is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
 ```python            
 code = compile(node,'<usercode>','eval')
 eval(code)
 ```    
     
-evalidate() throws ValueError if it doesn't like source code (if it has unsafe operations).
+evalidate() throws ValueError if it doesn't like source code (if code has unsafe operations).
     
-Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisionError.
+Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisiosnError.
 
 Examples
 ---

@@ -5,7 +5,7 @@
 import ast
 import sys
 
-version = '0.3'
+version = '0.6'
 
 
 class SafeAST(ast.NodeVisitor):
@@ -118,6 +118,6 @@ if __name__ == '__main__':
         success, result = safeeval(src, book)
         if success:
             if result:
-                print book
+                print(book)
         else:
-            print "ERR: ", result
+            print("ERR: ", result)

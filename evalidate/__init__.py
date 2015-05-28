@@ -116,7 +116,7 @@ if __name__ == '__main__':
     ]
 
     #src = 'stock>= (5 if price<9 else 0)'
-    src = 'stock>5 or price<10'
+    src = 'stock>5 or price>10'
 
     for book in books:
         success, result = safeeval(src, book)

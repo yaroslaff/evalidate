@@ -32,8 +32,11 @@ class SafeAST(ast.NodeVisitor):
             subscript = ['Subscript', 'Index']  # person['name']
             boolop = ['BoolOp', 'And', 'Or', 'UnaryOp', 'Not']  # True and True
             inop = ["In"]  # "aaa" in i['list']
+            ifop = ["IfExp"] # for if expressions, like: expr1 if expr2 else expr3
+            nameconst = ["NameConstant"] # for True and False constants
+            
             self.allowed = expression + values + compare + variables + binop + \
-                arithmetics + subscript + boolop + inop
+                arithmetics + subscript + boolop + inop + ifop + nameconst
 
         if addnodes is not None:
             self.allowed = self.allowed + addnodes
@@ -112,7 +115,8 @@ if __name__ == '__main__':
         },
     ]
 
-    src = 'stock>=5 and not price>9'
+    #src = 'stock>= (5 if price<9 else 0)'
+    src = 'stock>5 or price<10'
 
     for book in books:
         success, result = safeeval(src, book)

@@ -1,0 +1,4 @@
+Yaroslav Polyakov: main author
+
+Daniel Rech: python3 porting and IfExp idea
+

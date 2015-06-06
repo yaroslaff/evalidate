@@ -180,10 +180,10 @@ Data represented as object with attributes (not as dictionary) (we have to add '
 ```python
 import evalidate
                         
-class person:
+class Person:
     pass
                         
-p = person
+p = Person()
 p.salary=1000
 p.age=5
                         

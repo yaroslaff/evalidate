@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='evalidate',
-      version='0.7.1',
+      version='0.7.2',
       description='Eval code validator',
       url='http://evalidate.readthedocs.org/',
       author='Yaroslav Polyakov',

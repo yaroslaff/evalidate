@@ -83,14 +83,32 @@ Please note, using 'Mult' operation isn't very secure, because for strings it ca
 src='"a"=="a"*100*100*100*100*100'
 ```    
     ERROR: Runtime error (OverflowError): repeated string is too long
-    
+
+# Allowing function calls
+Evalidate does not allows any function calls by default:
+```
+>>> import evalidate
+>>> evalidate.safeeval('1+int(2)')
+(False, 'Validation error: Operaton type Call is not allowed')
+```
+To enable int() function, need to allow 'Call' node and  add this function to list of allowed function:
+```
+>>> evalidate.safeeval('1+int(2)', addnodes=['Call'], funcs=['int'])
+(True, 3)
+```
+Attempt to call other functions will fail (because it's not in funcs list):
+```
+>>> evalidate.safeeval('1+round(2)', addnodes=['Call'], funcs=['int'])
+(False, 'Validation error: Call to function round() is not allowed')
+```
+
 Functions
 ---
 
 ### safeeval()
 
 ```python
-success,result = safeeval(src,context={}, safenodes=None, addnodes=None)
+success,result = safeeval(src,context={}, safenodes=None, addnodes=None, funcs=None)
 ```
 
 *safeeval* is C-style higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful)
@@ -109,7 +127,7 @@ safeeval doesn't throws any exceptions
 
 ### evalidate()     
 ```python
-node = evalidate(expression,safenodes=None,addnodes=None)
+node = evalidate(expression, safenodes=None, addnodes=None, funcs=None)
 ```
 evalidate() is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
 ```python            
@@ -119,7 +137,7 @@ eval(code)
     
 evalidate() throws ValueError if it doesn't like source code (if code has unsafe operations).
     
-Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisiosnError.
+Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisionError.
 
 Examples
 ---

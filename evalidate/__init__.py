@@ -102,11 +102,11 @@ if __name__ == '__main__':
 
     usercode = '1+int("2")'
 #    usercode = "__import__('os').system('clear')"
-    success, result =  safeeval(usercode, addnodes=['Call'])
+    success, result =  safeeval(usercode, addnodes=['Call'], funcs=['int'])
     if success:
-        print "{} = {}".format(usercode, result)
+        print("{} = {}".format(usercode, result))
     else:
-        print result
+        print(result)
 
     books = [
         {

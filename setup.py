@@ -5,8 +5,8 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='evalidate',
-      version='0.7.5',
-      url='http://evalidate.readthedocs.org/',
+      version='0.7.6',
+      url='http://evalidate.bitbucket.org/',
       author='Yaroslav Polyakov',
       author_email='xenon@sysattack.com',
       license='MIT',

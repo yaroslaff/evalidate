@@ -14,7 +14,7 @@ class SafeAST(ast.NodeVisitor):
 
     allowed = {}
 
-    def __init__(self, safenodes=None, addnodes=None, funcs=None):
+    def __init__(self, safenodes=None, addnodes=None, funcs=None, attrs=None):
         """create whitelist of allowed operations."""
         if safenodes is not None:
             self.allowed = safenodes
@@ -39,14 +39,24 @@ class SafeAST(ast.NodeVisitor):
                 arithmetics + subscript + boolop + inop + ifop + nameconst
 
         self.allowed_funcs = funcs or list()
+        self.allowed_attrs = attrs or list()
 
         if addnodes is not None:
             self.allowed = self.allowed + addnodes
 
     def generic_visit(self, node):
         """Check node, rais exception is node is not in whitelist."""
+        
+        
         if type(node).__name__ in self.allowed:
-            # separate check for 'Call'            
+
+            if isinstance(node, ast.Attribute):
+                if node.attr not in self.allowed_attrs:
+                    raise ValueError(
+                        "Attribute {aname} is not allowed".format(
+                            aname=node.attr))    
+                        
+            # separate check for 'Call'                                                
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                 if node.func.id not in self.allowed_funcs:
                     raise ValueError(
@@ -63,7 +73,7 @@ class SafeAST(ast.NodeVisitor):
                     optype=type(node).__name__))
 
 
-def evalidate(expression, safenodes=None, addnodes=None, funcs=None):
+def evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=None):
     """Validate expression.
 
     return node if it passes our checks
@@ -71,15 +81,15 @@ def evalidate(expression, safenodes=None, addnodes=None, funcs=None):
     """
     node = ast.parse(expression, '<usercode>', 'eval')
 
-    v = SafeAST(safenodes, addnodes, funcs)
+    v = SafeAST(safenodes, addnodes, funcs, attrs)
     v.visit(node)
     return node
 
 
-def safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None):
+def safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None):
     """C-style simplified wrapper, eval() replacement."""
     try:
-        node = evalidate(src, safenodes, addnodes, funcs)
+        node = evalidate(src, safenodes, addnodes, funcs, attrs)
     except Exception as e:
         return (False, "Validation error: "+e.__str__())
 
@@ -100,13 +110,36 @@ def safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None):
 
 if __name__ == '__main__':
 
-    usercode = '1+int("2")'
-#    usercode = "__import__('os').system('clear')"
+    usercode = '1+int("2")'            
     success, result =  safeeval(usercode, addnodes=['Call'], funcs=['int'])
+    if success:
+        print("Good! {} = {}".format(usercode, result))
+    else:
+        print(result)
+
+    usercode = '"Hello!".__class__.__bases__[0].__subclasses__()'
+    success, result =  safeeval(usercode, addnodes=['Call','Attribute'], funcs=['int'])
     if success:
         print("{} = {}".format(usercode, result))
     else:
+        print("Good! Bad code caught: {}".format(result))
+        print("      Bad code was: {}".format(usercode))
+
+
+    class Person():
+        pass
+    
+    p = Person()
+    p.salary = 1000
+
+    usercode = 'p.salary * 1.2'
+    success, result =  safeeval(usercode, dict(p=p), addnodes=['Attribute','Mult'], attrs=['salary'])
+    if success:
+        print("Good! {} = {}".format(usercode, result))
+    else:
         print(result)
+    
+
 
     books = [
         {

@@ -108,7 +108,7 @@ Functions
 ### safeeval()
 
 ```python
-success,result = safeeval(src,context={}, safenodes=None, addnodes=None, funcs=None)
+success,result = safeeval(src,context={}, safenodes=None, addnodes=None, funcs=None, attrs=None)
 ```
 
 *safeeval* is C-style higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful)
@@ -116,6 +116,8 @@ success,result = safeeval(src,context={}, safenodes=None, addnodes=None, funcs=N
 *src* - source expression like "person['Age']>30 and salary==10000"
 
 *context* - dictionary of variables, available for evaluated code.
+
+*safenodes*, *addnodes*, *funcs* and *attrs* are same as in evalidate()
 
 return values:
 
@@ -127,13 +129,24 @@ safeeval doesn't throws any exceptions
 
 ### evalidate()     
 ```python
-node = evalidate(expression, safenodes=None, addnodes=None, funcs=None)
+node = evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=None)
 ```
 evalidate() is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
 ```python            
-code = compile(node,'<usercode>','eval')
-eval(code)
+
+>>> import evalidate
+>>> node = evalidate.evalidate('1+2')
+>>> code = compile(node,'<usercode>','eval')
+>>> eval(code)
+3
 ```    
+    
+- *expression* - string with python expressions like '1+2' or 'a+b' or 'a if a>0 else b' or 'p.salary * 1.2'
+- *safenodes* - list of allowed nodes. This will *override* built-in list of allowed nodes. e.g. `safenodes=['Expression','BinOp','Num','Add'])`
+- *addnodes* - list of allowed nodes. This will *extend* built-in lsit of allowed nodes. e.g. `addnodes=['Mult']`
+- *funcs* - list of allowed function calls. You need to add 'Call' to safe nodes. e.g. `funcs=['int']`
+- *attrs* - list of allowed attributes. You need to add 'Attribute' to attrs. e.g. `attrs=['salary']`.
+
     
 evalidate() throws ValueError if it doesn't like source code (if code has unsafe operations).
     
@@ -208,14 +221,14 @@ p.age=5
 data = {'p':p}
 src = 'p.salary+200+p.age*25'
                         
-success, result = evalidate.safeeval(src,data,addnodes=['Attribute','Mult'])
+success, result = evalidate.safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])
                         
 if success:
     print "result", result
 else:
     print "ERR:", result
 ```
-                        
+                                                
 ### Validate, compile and evaluate code ###
 ```python
 import evalidate

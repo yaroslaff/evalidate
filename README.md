@@ -1,5 +1,9 @@
-﻿Evalidate
+﻿Evalidate - OLD page, moved to github
 ===
+
+New location: [https://github.com/yaroslaff/evalidate](https://github.com/yaroslaff/evalidate)
+
+
 Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
 
 Purpose

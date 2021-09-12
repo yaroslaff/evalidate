@@ -43,9 +43,9 @@ c={'a': 1, 'b': 2} # context, variables which will be available for code
 
 success,result = evalidate.safeeval(src,c)
 if success:
-    print result
+    print(result)
 else:
-    print "ERROR:",result
+    print("ERROR:", result)
 ```
 
 Gives output:
@@ -228,9 +228,9 @@ src = 'p.salary+200+p.age*25'
 success, result = evalidate.safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])
                         
 if success:
-    print "result", result
+    print("result", result)
 else:
-    print "ERR:", result
+    print("ERR:", result)
 ```
                                                 
 ### Validate, compile and evaluate code ###
@@ -246,9 +246,9 @@ try:
     node = evalidate.evalidate(src)
     code = compile(node,'<usercode>','eval')
     result = eval(code,{},data)
-    print "result:",result
+    print("result:", result)
 except ValueError:
-    print "Bad source code:", src
+    print("Bad source code:", src)
 ```    
              
 More info
@@ -257,4 +257,4 @@ Want more info? Check source code of module, it's very short and simple, easy to
 
 Contact
 ---
-Write me: yaroslaff@gmail.com
+Write me: yaroslaff at gmail.com

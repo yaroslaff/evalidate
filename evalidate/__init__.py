@@ -21,8 +21,9 @@ class SafeAST(ast.NodeVisitor):
         else:
             # 123, 'asdf'
             values = ['Num', 'Str']
-            # any expression
+            # any expression or constant
             expression = ['Expression']
+            constant = ['Constant']
             # == ...
             compare = ['Compare', 'Eq', 'NotEq', 'Gt', 'GtE', 'Lt', 'LtE']
             # variable name
@@ -35,8 +36,9 @@ class SafeAST(ast.NodeVisitor):
             ifop = ["IfExp"] # for if expressions, like: expr1 if expr2 else expr3
             nameconst = ["NameConstant"] # for True and False constants
             
-            self.allowed = expression + values + compare + variables + binop + \
-                arithmetics + subscript + boolop + inop + ifop + nameconst
+            self.allowed = expression + constant + values + compare + \
+                variables + binop + arithmetics + subscript + boolop + \
+                inop + ifop + nameconst
 
         self.allowed_funcs = funcs or list()
         self.allowed_attrs = attrs or list()

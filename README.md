@@ -23,7 +23,7 @@ a+b-100
 Install
 ---
 ```shell
-pip install evalidate
+pip3 install evalidate
 ```
     
 Security
@@ -59,7 +59,7 @@ output will be:
     ERROR: Validation error: Operaton type Call is not allowed
     
 # Extending evalidate, safenodes and addnodes #
-Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this lisst. You can override this list by adding argument *safenodes* like:
+Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument *safenodes* like:
 ```python
 success,result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
 ```

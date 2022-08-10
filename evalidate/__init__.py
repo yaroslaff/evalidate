@@ -32,7 +32,7 @@ class SafeAST(ast.NodeVisitor):
             arithmetics = ['Add', 'Sub']
             subscript = ['Subscript', 'Index']  # person['name']
             boolop = ['BoolOp', 'And', 'Or', 'UnaryOp', 'Not']  # True and True
-            inop = ["In"]  # "aaa" in i['list']
+            inop = ["In", "NotIn"]  # "aaa" in i['list']
             ifop = ["IfExp"] # for if expressions, like: expr1 if expr2 else expr3
             nameconst = ["NameConstant"] # for True and False constants
             

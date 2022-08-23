@@ -71,7 +71,7 @@ class SafeAST(ast.NodeVisitor):
             ast.NodeVisitor.generic_visit(self, node)
         else:
             raise ValueError(
-                "Operaton type {optype} is not allowed".format(
+                "Operation type {optype} is not allowed".format(
                     optype=type(node).__name__))
 
 

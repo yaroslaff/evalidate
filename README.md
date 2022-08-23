@@ -248,6 +248,15 @@ except ValueError:
     print("Bad source code:", src)
 ```    
              
+Similar projects
+---
+[asteval](https://newville.github.io/asteval/)
+
+Read about eval() risks
+---
+- nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
+- https://netsec.expert/posts/breaking-python3-eval-protections/
+
 More info
 ---
 Want more info? Check source code of module, it's very short and simple, easy to modify

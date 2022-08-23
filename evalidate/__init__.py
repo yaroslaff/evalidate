@@ -7,6 +7,15 @@ import sys
 
 version = '0.6'
 
+class EvalException(Exception):
+    pass
+
+class ValidationException(EvalException):
+    pass
+
+class ExecutionException(EvalException):
+    pass
+
 
 class SafeAST(ast.NodeVisitor):
 

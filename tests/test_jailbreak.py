@@ -1,4 +1,4 @@
-from evalidate import safeeval, ValidationException
+from evalidate import ExecutionException, safeeval, ValidationException
 import pytest 
 
 class TestJailbreak():
@@ -73,3 +73,8 @@ class TestJailbreak():
         for bomb in bomb_list:
             with pytest.raises(ValidationException):
                 safeeval(bomb, addnodes=["Call"])
+
+    def test_mul_overflow(self):
+        src = '"a"*1000000*1000000*1000000*1000000'
+        with pytest.raises(ExecutionException):
+            safeeval(src, addnodes=['Mult'])

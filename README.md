@@ -61,7 +61,7 @@ inherit from base exception class `EvalException`.
 ## Extending evalidate, safenodes and addnodes
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument *safenodes* like:
 ```python
-    result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
+result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
 ```
 this will be enough for '1+1' expression (in src argument), but not for '1-1'. If you will try '1-1', it will report error:
 
@@ -77,11 +77,11 @@ For example, "1*1" will give error:
 
 But it will work with addnodes:
 ```python
-success,result = evalidate.safeeval(src,c, addnodes=['Mult'])
+result = evalidate.safeeval(src,c, addnodes=['Mult'])
 ```    
 Please note, using 'Mult' operation isn't very secure, because for strings it can lead to Out-of-memory:
 ```python
-src='"a"=="a"*100*100*100*100*100'
+src='"a"*1000000000000000000000000000000000000000000000'
 ```    
     ERROR: Runtime error (OverflowError): repeated string is too long
 

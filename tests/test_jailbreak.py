@@ -21,5 +21,55 @@ class TestJailbreak():
         # indirect call
         src="""__builtins__['eval']("print(1)")""" 
         with pytest.raises(ValidationException):
-            result = safeeval(src,addnodes=["Call"])
+            result = safeeval(src, addnodes=["Call"])
          
+    def test_bomb(self):
+        bomb_list = ["""
+(lambda fc=(
+    lambda n: [
+        c for c in
+            ().__class__.__bases__[0].__subclasses__()
+            if c.__name__ == n
+        ][0]
+    ):
+    fc("function")(
+        fc("code")(
+            0,0,0,0,0,b"BOOM",(),(),(),"","",0,b""
+        ),{}
+    )()
+)()
+""",
+"""
+(lambda fc=(
+    lambda n: [
+        c for c in
+            ().__class__.__bases__[0].__subclasses__()
+            if c.__name__ == n
+        ][0]
+    ):
+    fc("function")(
+        fc("code")(
+            0,0,0,0,0,0,b"BOOM",(),(),(),"","",0,b""
+        ),{}
+    )()
+)()
+""",
+"""
+(lambda fc=(
+    lambda n: [
+        c for c in
+            ().__class__.__bases__[0].__subclasses__()
+            if c.__name__ == n
+        ][0]
+    ):
+    fc("function")(
+        fc("code")(
+            0,0,0,0,0,0,b"BOOM",(),(),(),"","","",0,b"",b"",b"",b"",(),()
+        ),{}
+    )()
+)()
+"""
+]
+        for bomb in bomb_list:
+            with pytest.raises(ValidationException):
+                safeeval(bomb, addnodes=["Call"])

@@ -58,8 +58,8 @@ output will be: `ERR: Operation type Call is not allowed`
 Evalidate throws exceptions `CompilationException`, `ValidationException`, `ExecutionException`. All of them
 inherit from base exception class `EvalException`.
 
-## Extending evalidate, safenodes and addnodes
-Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument *safenodes* like:
+## Extending evalidate: safenodes and addnodes
+Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument `safenodes` like:
 ```python
 result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
 ```
@@ -68,7 +68,7 @@ this will be enough for '1+1' expression (in src argument), but not for '1-1'. I
     ERROR: Validation error: Operaton type Sub is not allowed
 
 
-This way you can start from scratch and allow only required operations. As an alternative, you can use built-in list of allowed operations and extend it if needed, using *addnodes* argument.
+This way you can start from scratch and allow only required operations. As an alternative, you can use built-in list of allowed operations and extend it if needed, using `addnodes` argument.
 
 For example, "1*1" will give error:
 
@@ -89,12 +89,12 @@ src='"a"*1000000000000000000000000000000000000000000000'
 Evalidate does not allows any function calls by default:
 ```
 >>> import evalidate
->>> evalidate.safeeval('1+int(2)')
+>>> evalidate.safeeval('int(1)')
 (False, 'Validation error: Operaton type Call is not allowed')
 ```
 To enable int() function, need to allow 'Call' node and  add this function to list of allowed function:
 ```
->>> evalidate.safeeval('1+int(2)', addnodes=['Call'], funcs=['int'])
+>>> evalidate.safeeval('int(1)', addnodes=['Call'], funcs=['int'])
 (True, 3)
 ```
 Attempt to call other functions will fail (because it's not in funcs list):
@@ -103,7 +103,7 @@ Attempt to call other functions will fail (because it's not in funcs list):
 (False, 'Validation error: Call to function round() is not allowed')
 ```
 
-Any indirect function calls (`__builtins__['eval']("print(1)")`) are not allowed. 
+Any indirect function calls (like: `__builtins__['eval']("print(1)")`) are not allowed. 
 
 
 ## Functions
@@ -114,26 +114,21 @@ Any indirect function calls (`__builtins__['eval']("print(1)")`) are not allowed
 result = safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None)
 ```
 
-*safeeval* is C-style higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful). Throws exception if compilation, validation or execution fails.
+`safeeval` is higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful). Throws exception if compilation(parsing), validation or execution fails.
 
-*src* - source expression like "person['Age']>30 and salary==10000"
+`src` - source expression like "person['Age']>30 and salary==10000"
 
-*context* - dictionary of variables, available for evaluated code.
+`context` - dictionary of variables, available for evaluated code.
 
-*safenodes*, *addnodes*, *funcs* and *attrs* are same as in evalidate()
+`safenodes`, `addnodes`, `funcs` and `attrs` are same as in `evalidate()`
 
-return values:
-
-*success* - binary, True if validation is successul and evaluation didn't thrown any exceptions. (False in this case) 
-
-*result* - if success==True, result is result of expression. If success==False, result is string with error message, like "ERROR: Runtime error (NameError): name 'aaa' is not defined"
-    
+returns result of evaluation of expression. 
 
 ### evalidate()     
 ```python
 node = evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=None)
 ```
-evalidate() is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
+`evalidate()` is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
 ```python            
 
 >>> import evalidate
@@ -143,16 +138,16 @@ evalidate() is main (and recommended to use) method, performs parsing of python 
 3
 ```    
     
-- *expression* - string with python expressions like '1+2' or 'a+b' or 'a if a>0 else b' or 'p.salary * 1.2'
-- *safenodes* - list of allowed nodes. This will *override* built-in list of allowed nodes. e.g. `safenodes=['Expression','BinOp','Num','Add'])`
-- *addnodes* - list of allowed nodes. This will *extend* built-in lsit of allowed nodes. e.g. `addnodes=['Mult']`
-- *funcs* - list of allowed function calls. You need to add 'Call' to safe nodes. e.g. `funcs=['int']`
-- *attrs* - list of allowed attributes. You need to add 'Attribute' to attrs. e.g. `attrs=['salary']`.
+- `expression` - string with python expressions like '1+2' or 'a+b' or 'a if a>0 else b' or 'p.salary * 1.2'
+- `safenodes` - list of allowed nodes. This will *override* built-in list of allowed nodes. e.g. `safenodes=['Expression','BinOp','Num','Add'])`
+- `addnodes` - list of allowed nodes. This will *extend* built-in lsit of allowed nodes. e.g. `addnodes=['Mult']`
+- `funcs` - list of allowed function calls. You need to add 'Call' to safe nodes. e.g. `funcs=['int']`
+- `attrs` - list of allowed attributes. You need to add 'Attribute' to attrs. e.g. `attrs=['salary']`.
 
     
 evalidate() throws `CompilationException` if cannot parse source code and `ValidationException` if it doesn't like source code (if code has unsafe operations).
     
-Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisionError.
+Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have `NameError` (if tries to access undefined variable) or `ZeroDivisionError`.
 
 ## Examples
 

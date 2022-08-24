@@ -231,8 +231,11 @@ def test(src):
 
     try:
         node = evalidate.evalidate(src)
-    except (evalidate.CompilationException, evalidate.ValidationException):
+    except evalidate.CompilationException:
         print("Bad source code:", repr(src))
+        return
+    except evalidate.ValidationException:
+        print("Dangerous code:", repr(src))
         return
 
     code = compile(node,'<usercode>','eval')
@@ -241,12 +244,12 @@ def test(src):
         print("result:", result)
     except Exception as e:
         # almost any kind of exception can happen here
-        print(e)
+        print("Runtime exception:",e)
 
 srclist=['one+two+3', 'one+two+3+os.system("clear")', '', '1/0']
 
 for src in srclist:
-    test(src)
+    test(src)    
 ```    
              
 Similar projects

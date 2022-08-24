@@ -28,16 +28,18 @@ pip3 install evalidate
 Built-in python features such as compile() or eval() are quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like `os.system("rm -rf /")`. Evalidate works on whitelist principle, allowing code only if it consist only of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
 
 ## TL;DR. Just give me safe eval!
-Very basic example (no exceptions handling)
-
 ```python
-from evalidate import safeeval
+from evalidate import safeeval, EvalException
 
 src="a+b" # source code
+# src="__import__('os').system('clear')"
 c={'a': 1, 'b': 2} # context, variables which will be available for code
 
-result = safeeval(src,c)
-print(result)
+try:
+    result = safeeval(src,c)
+    print(result)
+except EvalException as e:
+    print("ERR:", e)
 ```
 
 Gives output:
@@ -49,9 +51,8 @@ In case of dangerous code:
 src="__import__('os').system('clear')"
 ```    
     
-output will be:
+output will be: `ERR: Operation type Call is not allowed`
 
-    ERROR: Validation error: Operaton type Call is not allowed
 
 ## Exceptions
 Evalidate throws exceptions `CompilationException`, `ValidationException`, `ExecutionException`. All of them are based on `EvalException`.

@@ -153,7 +153,7 @@ Even if evalidate is successful, this doesn't guarantees that code will run well
 
 ### Filtering by user-supplied condition ###
 ```python
-import evalidate
+from evalidate import safeeval, EvalException
     
 depot = [
     {
@@ -183,9 +183,9 @@ src='stock>0 and price>8' # expensive book available for sale
     
 for book in depot:
     try:
-        result = evalidate.safeeval(src,book)
+        result = safeeval(src,book)
         if result:
-            print book
+            print(book)
     except EvalException as e:
         print("ERR:", e)
 ```    
@@ -204,7 +204,7 @@ With second src line ('stock>0 and price>8') it gives:
 ### Data as objects
 Data represented as object with attributes (not as dictionary) (we have to add 'Attribute' to safe nodes). Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
 ```python
-import evalidate
+from evalidate import safeeval, EvalException
                         
 class Person:
     pass
@@ -216,29 +216,37 @@ p.age=5
 data = {'p':p}
 src = 'p.salary+200+p.age*25'
 try:                        
-    result = evalidate.safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])                        
+    result = safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])                        
     print("result", result)
 except EvalException as e:
     print("ERR:",e)
-
 ```
                                                 
 ### Validate, compile and evaluate code
 ```python
 import evalidate
-import os
-    
-data={'one':1,'two':2}
-src='one+two+3'
-#src='one+two+3+os.system("clear")'
-    
-try:
-    node = evalidate.evalidate(src)
+
+def test(src):   
+    data={'one':1,'two':2}
+
+    try:
+        node = evalidate.evalidate(src)
+    except (evalidate.CompilationException, evalidate.ValidationException):
+        print("Bad source code:", repr(src))
+        return
+
     code = compile(node,'<usercode>','eval')
-    result = eval(code,{},data)
-    print("result:", result)
-except ValueError:
-    print("Bad source code:", src)
+    try:
+        result = eval(code,{},data)
+        print("result:", result)
+    except Exception as e:
+        # almost any kind of exception can happen here
+        print(e)
+
+srclist=['one+two+3', 'one+two+3+os.system("clear")', '', '1/0']
+
+for src in srclist:
+    test(src)
 ```    
              
 Similar projects

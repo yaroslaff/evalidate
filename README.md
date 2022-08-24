@@ -61,7 +61,7 @@ inherit from base exception class `EvalException`.
 ## Extending evalidate, safenodes and addnodes
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument *safenodes* like:
 ```python
-success,result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
+    result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
 ```
 this will be enough for '1+1' expression (in src argument), but not for '1-1'. If you will try '1-1', it will report error:
 

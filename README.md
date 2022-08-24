@@ -1,10 +1,7 @@
-﻿Evalidate
-===
-
+﻿# Evalidate
 Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
 
-Purpose
----
+## Purpose
 Originally it's developed for filtering (performing boolean expressions) complex data structures e.g. raise salary if 
 
 ```python
@@ -20,29 +17,27 @@ But also, it can be used for other expressions, e.g. arithmetical, like
 a+b-100
 ```
 
-Install
----
+## Install
+
 ```shell
 pip3 install evalidate
 ```
     
-Security
----
-Built-in python features such as compile() or eval() is quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like os.system("rm -rf /"). Evalidate works on whitelist principle, allowing code only if it consist only  of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
+## Security
 
-Very basic example
----
+Built-in python features such as compile() or eval() are quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like `os.system("rm -rf /")`. Evalidate works on whitelist principle, allowing code only if it consist only of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
+
+## TL;DR. Just give me safe eval!
+Very basic example (no exceptions handling)
+
 ```python
-import evalidate
+from evalidate import safeeval
 
 src="a+b" # source code
 c={'a': 1, 'b': 2} # context, variables which will be available for code
 
-success,result = evalidate.safeeval(src,c)
-if success:
-    print(result)
-else:
-    print("ERROR:", result)
+result = safeeval(src,c)
+print(result)
 ```
 
 Gives output:
@@ -57,8 +52,11 @@ src="__import__('os').system('clear')"
 output will be:
 
     ERROR: Validation error: Operaton type Call is not allowed
-    
-# Extending evalidate, safenodes and addnodes #
+
+## Exceptions
+Evalidate throws exceptions `CompilationException`, `ValidationException`, `ExecutionException`. All of them are based on `EvalException`.
+
+## Extending evalidate, safenodes and addnodes
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument *safenodes* like:
 ```python
 success,result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
@@ -85,7 +83,7 @@ src='"a"=="a"*100*100*100*100*100'
 ```    
     ERROR: Runtime error (OverflowError): repeated string is too long
 
-# Allowing function calls
+## Allowing function calls
 Evalidate does not allows any function calls by default:
 ```
 >>> import evalidate
@@ -103,16 +101,18 @@ Attempt to call other functions will fail (because it's not in funcs list):
 (False, 'Validation error: Call to function round() is not allowed')
 ```
 
-Functions
----
+Any indirect function calls (`__builtins__['eval']("print(1)")`) are not allowed. 
+
+
+## Functions
 
 ### safeeval()
 
 ```python
-success,result = safeeval(src,context={}, safenodes=None, addnodes=None, funcs=None, attrs=None)
+result = safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None)
 ```
 
-*safeeval* is C-style higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful)
+*safeeval* is C-style higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful). Throws exception if compilation, validation or execution fails.
 
 *src* - source expression like "person['Age']>30 and salary==10000"
 
@@ -126,7 +126,6 @@ return values:
 
 *result* - if success==True, result is result of expression. If success==False, result is string with error message, like "ERROR: Runtime error (NameError): name 'aaa' is not defined"
     
-safeeval doesn't throws any exceptions
 
 ### evalidate()     
 ```python
@@ -149,12 +148,11 @@ evalidate() is main (and recommended to use) method, performs parsing of python 
 - *attrs* - list of allowed attributes. You need to add 'Attribute' to attrs. e.g. `attrs=['salary']`.
 
     
-evalidate() throws ValueError if it doesn't like source code (if code has unsafe operations).
+evalidate() throws `CompilationException` if cannot parse source code and `ValidationException` if it doesn't like source code (if code has unsafe operations).
     
 Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have NameError (if tries to access undefined variable) or ZeroDivisionError.
 
-Examples
----
+## Examples
 
 ### Filtering by user-supplied condition ###
 ```python
@@ -187,13 +185,12 @@ depot = [
 src='stock>0 and price>8' # expensive book available for sale
     
 for book in depot:
-    success, result = evalidate.safeeval(src,book)
-    
-    if success:
+    try:
+        result = evalidate.safeeval(src,book)
         if result:
             print book
-    else:
-        print "ERR:", result
+    except EvalException as e:
+        print("ERR:", e)
 ```    
     
 With first src line ('stock==0') it gives:
@@ -207,7 +204,7 @@ With second src line ('stock>0 and price>8') it gives:
     
 
 
-### Data as objects ###
+### Data as objects
 Data represented as object with attributes (not as dictionary) (we have to add 'Attribute' to safe nodes). Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
 ```python
 import evalidate
@@ -221,16 +218,15 @@ p.age=5
                         
 data = {'p':p}
 src = 'p.salary+200+p.age*25'
-                        
-success, result = evalidate.safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])
-                        
-if success:
+try:                        
+    result = evalidate.safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])                        
     print("result", result)
-else:
-    print("ERR:", result)
+except EvalException as e:
+    print("ERR:",e)
+
 ```
                                                 
-### Validate, compile and evaluate code ###
+### Validate, compile and evaluate code
 ```python
 import evalidate
 import os
@@ -254,7 +250,7 @@ Similar projects
 
 Read about eval() risks
 ---
-- nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
+- https://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
 - https://netsec.expert/posts/breaking-python3-eval-protections/
 
 More info

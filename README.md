@@ -55,7 +55,8 @@ output will be: `ERR: Operation type Call is not allowed`
 
 
 ## Exceptions
-Evalidate throws exceptions `CompilationException`, `ValidationException`, `ExecutionException`. All of them are based on `EvalException`.
+Evalidate throws exceptions `CompilationException`, `ValidationException`, `ExecutionException`. All of them
+inherit from base exception class `EvalException`.
 
 ## Extending evalidate, safenodes and addnodes
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument *safenodes* like:

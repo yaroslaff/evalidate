@@ -81,12 +81,12 @@ result = evalidate.safeeval(src,c, addnodes=['Mult'])
 ```    
 Please note, using 'Mult' operation isn't very secure, because for strings it can lead to Out-of-memory:
 ```python
-src='"a"*1000000000000000000000000000000000000000000000'
+src='"a"*1000000*1000000*1000000*1000000'
 ```    
     ERROR: Runtime error (OverflowError): repeated string is too long
 
 ## Allowing function calls
-Evalidate does not allows any function calls by default:
+Evalidate does not allow any function calls by default:
 ```
 >>> import evalidate
 >>> evalidate.safeeval('int(1)')
@@ -95,13 +95,13 @@ Evalidate does not allows any function calls by default:
 To enable int() function, need to allow 'Call' node and  add this function to list of allowed function:
 ```
 >>> evalidate.safeeval('int(1)', addnodes=['Call'], funcs=['int'])
-(True, 3)
+1
 ```
 Attempt to call other functions will fail (because it's not in funcs list):
 ```
->>> evalidate.safeeval('1+round(2)', addnodes=['Call'], funcs=['int'])
-(False, 'Validation error: Call to function round() is not allowed')
+evalidate.safeeval('1+round(2)', addnodes=['Call'], funcs=['int'])
 ```
+This will throw `ValidationException`.
 
 Any indirect function calls (like: `__builtins__['eval']("print(1)")`) are not allowed. 
 

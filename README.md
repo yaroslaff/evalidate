@@ -27,6 +27,7 @@ pip3 install evalidate
 
 Built-in python features such as compile() or eval() are quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like `os.system("rm -rf /")`. Evalidate works on whitelist principle, allowing code only if it consist only of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
 
+
 ## TL;DR. Just give me safe eval!
 ```python
 from evalidate import safeeval, EvalException
@@ -117,7 +118,7 @@ There are two functions, `safeeval()` and `evalidate()`.
 
 `safeeval()` is simplest possible replacement to `eval()`. It is good to evaluate something once or few times, where speed is not an issue. If you need to eval same code 2nd time, it will take same 'long' time to parse/validate code. 
 
-`evalidate()` is just little more complex, but returns validated safe python AST node, which can be compiled to python bytecode, and executed at full speed. (But this code is safe after evalidate)
+`evalidate()` is just little more complex, but returns validated safe python AST node, which can be compiled to python bytecode, and executed at full speed. (And this code is safe after evalidate)
 
 
 ### safeeval()
@@ -221,6 +222,24 @@ With second src line ('stock>0 and price>8') it gives:
     {'price': 14, 'book': 'Choke', 'stock': 2}
     
 
+Also, see `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/.
+
+~~~shell
+# print all 100 products
+./products.py
+
+# Only cheap products, 8 matches
+./products.py 'price<20'
+
+# smartphones (5)
+./products.py 'category=="smartphones"'
+
+# good smartphones
+./products.py 'category=="smartphones" and rating>4.5'
+
+# cheap smartphones
+./products.py 'category=="smartphones" and price<300'
+~~~
 
 ### Data as objects
 Data represented as object with attributes (not as dictionary) (we have to add 'Attribute' to safe nodes). Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
@@ -273,25 +292,6 @@ for src in srclist:
     test(src)    
 ```    
 
-## Example
-See `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/.
-
-~~~
-# print all 100 products
-./products.py
-
-# Only cheap products, 8 matches
-./products.py 'price<20'
-
-# smartphones (5)
-./products.py 'category=="smartphones"'
-
-# good smartphones
-./products.py 'category=="smartphones" and rating>4.5'
-
-# cheap smartphones
-./products.py 'category=="smartphones" and price<300'
-~~~
 
 ## Similar projects and benchmark
 

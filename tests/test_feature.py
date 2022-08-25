@@ -37,3 +37,7 @@ class TestSafeEval():
             src = f'int( {src} )'
         r = evalidate.safeeval(src, addnodes=['Call'], funcs=['int'])
         assert( r==1 )
+    
+    def test_startswith(self):
+        src = '"abcdef".startswith("abc")'
+        r = evalidate.safeeval(src, addnodes=['Call', 'Attribute'], attrs=['startswith'])

@@ -31,3 +31,8 @@ class TestExceptions():
         with pytest.raises(CompilationException) as e: 
             evalidate('return 42')
     
+    def test_startswith(self):
+        with pytest.raises(ValidationException) as e:
+            src = '"abcdef".startswith("abc")'
+            r = evalidate(src, addnodes=['Call'])
+

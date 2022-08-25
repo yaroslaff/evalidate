@@ -86,6 +86,9 @@ class SafeAST(ast.NodeVisitor):
                     else:
                         # Call to allowed function. good. No exception
                         pass            
+                elif isinstance(node.func, ast.Attribute):
+                    pass
+                    # print("attr:", node.func.attr)                                        
                 else:
                     raise ValidationException('Indirect function call')
 

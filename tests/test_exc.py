@@ -26,4 +26,8 @@ class TestExceptions():
         ctx = {'a':36.6}
         with pytest.raises(ValidationException) as e:
             r = safeeval('int(a)', ctx)
+
+    def test_return(self):
+        with pytest.raises(CompilationException) as e: 
+            evalidate('return 42')
     

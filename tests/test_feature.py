@@ -30,3 +30,10 @@ class TestSafeEval():
             code = compile(node,'<usercode>','eval')
             result = eval(code, {}, ctx)
             assert(result==r)
+    
+    def test_stack(self):
+        src='int(1)'
+        for i in range(199):
+            src = f'int( {src} )'
+        r = evalidate.safeeval(src, addnodes=['Call'], funcs=['int'])
+        assert( r==1 )

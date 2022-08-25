@@ -108,6 +108,13 @@ Any indirect function calls (like: `__builtins__['eval']("print(1)")`) are not a
 
 ## Functions
 
+There are two functions, `safeeval()` and `evalidate()`. 
+
+`safeeval()` is simplest possible replacement to `eval()`. It is good to evaluate something once or few times, where speed is not an issue. If you need to eval same code 2nd time, it will take same 'long' time to parse/validate code. 
+
+`evalidate()` is just little more complex, but returns validated safe python AST node, which can be compiled to python bytecode, and executed at full speed. (But this code is safe after evalidate)
+
+
 ### safeeval()
 
 ```python
@@ -148,6 +155,15 @@ node = evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=No
 evalidate() throws `CompilationException` if cannot parse source code and `ValidationException` if it doesn't like source code (if code has unsafe operations).
     
 Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have `NameError` (if tries to access undefined variable) or `ZeroDivisionError`.
+
+evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.parse) and returns [AST node](https://docs.python.org/3/library/ast.html#node-classes).
+
+>Warning
+>
+>It is possible to crash the Python interpreter with a sufficiently large/complex string due to stack depth limitations in Python’s AST compiler. 
+
+In my test, works well with 200 nested int(): `int(int(.... int(1)...))` but not with 201. Source code is 1000+ characters. But even if evalidate will get such code, it will just raise `CompilationException`.
+
 
 ## Examples
 

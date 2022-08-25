@@ -272,20 +272,62 @@ srclist=['one+two+3', 'one+two+3+os.system("clear")', '', '1/0']
 for src in srclist:
     test(src)    
 ```    
-             
-Similar projects
----
+
+## Example
+See `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/.
+
+~~~
+# print all 100 products
+./products.py
+
+# Only cheap products, 8 matches
+./products.py 'price<20'
+
+# smartphones (5)
+./products.py 'category=="smartphones"'
+
+# good smartphones
+./products.py 'category=="smartphones" and rating>4.5'
+
+# cheap smartphones
+./products.py 'category=="smartphones" and price<300'
+~~~
+
+## Similar projects and benchmark
+
 [asteval](https://newville.github.io/asteval/)
 
-Read about eval() risks
----
+While asteval can compute much more complex code (define functions, use python math libraries) it has drawbacks:
+- asteval is much slower (evalidate can be used at speed of eval() python bytecode)
+- user can provide source code which runs very long time and consumes many resources 
+
+evalidate is good to run short same code against different data.
+
+## Benchmarking
+We use `evalidate-vs-asteval.py` which is in benchmark/ directory of repository
+~~~
+$ ./evalidate-vs-asteval.py 
+Src: a+b
+Context: {'a': 1, 'b': 2}
+Runs: 100000
+asteval: 3.538s
+asteval (reuse interpreter): 1.232s
+safeeval: 2.384s
+evalidate/compile/eval (reuse compiled code): 0.017s
+~~~
+0.017s vs 1.232s
+
+
+## Read about eval() risks
+
 - https://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
 - https://netsec.expert/posts/breaking-python3-eval-protections/
+- https://realpython.com/python-eval-function/
 
-More info
----
+## More info
+
 Want more info? Check source code of module, it's very short and simple, easy to modify
 
-Contact
----
+## Contact
+
 Write me: yaroslaff at gmail.com

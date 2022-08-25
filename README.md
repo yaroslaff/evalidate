@@ -88,10 +88,15 @@ src='"a"*1000000*1000000*1000000*1000000'
 ## Allowing function calls
 Evalidate does not allow any function calls by default:
 ```
->>> import evalidate
->>> evalidate.safeeval('int(1)')
-(False, 'Validation error: Operaton type Call is not allowed')
+>>> from evalidate import safeeval, EvalException
+>>> try:
+...   safeeval('int(1)')
+... except EvalException as e:
+...   print(e)
+... 
+Operation type Call is not allowed
 ```
+
 To enable int() function, need to allow 'Call' node and  add this function to list of allowed function:
 ```
 >>> evalidate.safeeval('int(1)', addnodes=['Call'], funcs=['int'])

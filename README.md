@@ -109,7 +109,8 @@ evalidate.safeeval('1+round(2)', addnodes=['Call'], funcs=['int'])
 ```
 This will throw `ValidationException`.
 
-Any indirect function calls (like: `__builtins__['eval']("print(1)")`) are not allowed. 
+Aattributes calls (`"aaa".startswith("a")`) could be allowed (with proper `addnodes` and `attrs`) but
+other indirect function calls (like: `__builtins__['eval']("print(1)")`) are not allowed,
 
 
 ## Functions
@@ -323,6 +324,9 @@ evalidate/compile/eval (reuse compiled code): 0.017s
 - https://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
 - https://netsec.expert/posts/breaking-python3-eval-protections/
 - https://realpython.com/python-eval-function/
+
+Note: realpython article shows example with nice short method of validation source (using `code.co_names`), 
+but it's vulnerable, it passes "bomb" from Ned Batchelder article (bomb has empty `co_names` tuple) and crash interpreter. Evalidate can block this code and similar bombs (unless you will intentionally configure evalidate to pass specific bomb code. Yes, with evalidate it is hard to shoot yourself in the foot, but it is possible if you will try hard).
 
 ## More info
 

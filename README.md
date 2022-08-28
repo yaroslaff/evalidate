@@ -243,7 +243,7 @@ int(1)
 
 ### Filtering by user-supplied condition ###
 
-This is code of `examples/products.py`. Expression is validated and compiles once and executed many times, so filtering is both fast and secure.
+This is code of `examples/products.py`. Expression is validated and compiled once and executed (as byte-code, very fast) many times, so filtering is both fast and secure.
 
 
 ~~~python

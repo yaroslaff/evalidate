@@ -87,7 +87,7 @@ and will raise runtime exception: `ERROR: Runtime error (OverflowError): repeate
 
 ### Allowing function calls
 Evalidate does not allow any function calls by default:
-```
+```python
 >>> from evalidate import safeeval, EvalException
 >>> try:
 ...   safeeval('int(1)')
@@ -98,12 +98,12 @@ Operation type Call is not allowed
 ```
 
 To enable int() function, need to allow 'Call' node and  add this function to list of allowed function:
-```
+```python
 >>> evalidate.safeeval('int(1)', addnodes=['Call'], funcs=['int'])
 1
 ```
 Attempt to call other functions will fail (because it's not in funcs list):
-```
+```python
 evalidate.safeeval('1+round(2)', addnodes=['Call'], funcs=['int'])
 ```
 This will throw `ValidationException`.
@@ -137,13 +137,13 @@ except EvalException as e:
 
 ### Calling attributes
 This code will not work:
-~~~
+~~~python
 safeeval('"abc".startswith("a")')
 ~~~
 Because: `evalidate.ValidationException: Operation type Call is not allowed`
 
 To make it working:
-~~~
+~~~python
 print(safeeval('"abc".startswith("a")', addnodes=['Call', 'Attribute'], attrs=['startswith']))
 ~~~
 
@@ -212,14 +212,14 @@ In my test, works well with 200 nested int(): `int(int(.... int(1)...))` but not
 Evalidate is very flexible and it's possible to shoot yourself in foot if you will try hard. `test_security()` checks your configuration (addnodes/safenodes, funcs, attrs) against given list of possible attack code or against built-in list of attacks. `test_security()` returns True if everything is OK (all attacks raised ValidationException) or False if something passed.
 
 This code will never print (I hope).
-~~~
+~~~python
 from evalidate.security import test_security
 
 test_security() or print("default rules are vulnerable!")
 ~~~
 
 But this will fail because nodes/funcs leads to successful validation for attack (suppose you do not want anyone to call `int()`)
-~~~
+~~~python
 from evalidate.security import test_security
 
 attacks = ['int(1)']

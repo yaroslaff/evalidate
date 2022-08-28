@@ -5,7 +5,6 @@
 import ast
 import sys
 
-version = '0.6'
 
 class EvalException(Exception):
     pass
@@ -116,11 +115,11 @@ def evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=None)
     return node
 
 
-def safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None):
+def safeeval(expression, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None):
     """C-style simplified wrapper, eval() replacement."""
 
     # ValidationException thrown here
-    node = evalidate(src, safenodes, addnodes, funcs, attrs)
+    node = evalidate(expression, safenodes, addnodes, funcs, attrs)
 
     code = compile(node, '<usercode>', 'eval')
 

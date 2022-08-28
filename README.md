@@ -115,22 +115,22 @@ other indirect function calls (like: `__builtins__['eval']("print(1)")`) are not
 
 ## Functions
 
-There are two functions, `safeeval()` and `evalidate()`. 
-
 `safeeval()` is simplest possible replacement to `eval()`. It is good to evaluate something once or few times, where speed is not an issue. If you need to eval same code 2nd time, it will take same 'long' time to parse/validate code. 
 
 `evalidate()` is just little more complex, but returns validated safe python AST node, which can be compiled to python bytecode, and executed at full speed. (And this code is safe after evalidate)
 
+`security.test_security()` checks configuration(nodes, funcs, attrs) against set of attacks.
 
-### safeeval()
+
+### evalidate.safeeval()
 
 ```python
-result = safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None)
+result = safeeval(expression, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None)
 ```
 
 `safeeval` is higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful). Throws exception if compilation(parsing), validation or execution fails.
 
-`src` - source expression like "person['Age']>30 and salary==10000"
+`expression` - python expression like `salary+100` or `category="smartphones" and price<300 and stock>0`.
 
 `context` - dictionary of variables, available for evaluated code.
 
@@ -138,11 +138,13 @@ result = safeeval(src, context={}, safenodes=None, addnodes=None, funcs=None, at
 
 returns result of evaluation of expression. 
 
-### evalidate()     
+### evalidate.evalidate()     
 ```python
 node = evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=None)
 ```
-`evalidate()` is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed
+`evalidate()` is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed. Evalidate does not evaluates code, use `compile()` and `eval()` after `evalidate()`.
+
+
 ```python            
 
 >>> import evalidate
@@ -152,7 +154,7 @@ node = evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=No
 3
 ```    
     
-- `expression` - string with python expressions like '1+2' or 'a+b' or 'a if a>0 else b' or 'p.salary * 1.2'
+- `expression` - python expression `salary+100` or `category="smartphones" and price<300 and stock>0`.
 - `safenodes` - list of allowed nodes. This will *override* built-in list of allowed nodes. e.g. `safenodes=['Expression','BinOp','Num','Add'])`
 - `addnodes` - list of allowed nodes. This will *extend* built-in lsit of allowed nodes. e.g. `addnodes=['Mult']`
 - `funcs` - list of allowed function calls. You need to add 'Call' to safe nodes. e.g. `funcs=['int']`
@@ -170,6 +172,37 @@ evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.pars
 >It is possible to crash the Python interpreter with a sufficiently large/complex string due to stack depth limitations in Python’s AST compiler. 
 
 In my test, works well with 200 nested int(): `int(int(.... int(1)...))` but not with 201. Source code is 1000+ characters. But even if evalidate will get such code, it will just raise `CompilationException`.
+
+
+### evalidate.security.test_security
+Evalidate is very flexible and it's possible to shoot yourself in foot if you will try hard. `test_security()` checks your configuration (addnodes/safenodes, funcs, attrs) against given list of possible attack code or against built-in list of attacks. `test_security()` returns True if everything is OK (all attacks raised ValidationException) or False if something passed.
+
+This code will never print (I hope).
+~~~
+from evalidate.security import test_security
+
+test_security() or print("default rules are vulnerable!")
+~~~
+
+But this will fail because nodes/funcs leads to successful validation for attack (suppose you do not want anyone to call `int()`)
+~~~
+from evalidate.security import test_security
+
+attacks = ['int(1)']
+
+test_security(attacks, addnodes=['Call'], funcs=['int'], verbose=True)
+~~~
+
+It will print:
+~~~
+Testing attack code:
+int(1)
+Problem! Attack passed validation without exception!
+Code:
+int(1)
+~~~
+
+
 
 
 ## Examples

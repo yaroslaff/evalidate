@@ -114,7 +114,7 @@ Attributes calls (`"aaa".startswith("a")`) could be allowed (with proper `addnod
 other indirect function calls (like: `__builtins__['eval']("print(1)")`) are not allowed,
 
 
-### accessing attributes (attrs parameter), data as classes
+### Accessing attributes (attrs parameter); data as classes
 
 If data represented as object with attributes (not as dictionary) we have to add 'Attribute' to safe nodes. Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
 
@@ -137,7 +137,7 @@ except EvalException as e:
     print("ERR:",e)
 ```
 
-### calling attributes
+### Calling attributes
 This code will not work:
 ~~~
 safeeval('"abc".startswith("a")')
@@ -210,7 +210,7 @@ evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.pars
 In my test, works well with 200 nested int(): `int(int(.... int(1)...))` but not with 201. Source code is 1000+ characters. But even if evalidate will get such code, it will just raise `CompilationException`.
 
 
-### evalidate.security.test_security
+### evalidate.security.test_security()
 Evalidate is very flexible and it's possible to shoot yourself in foot if you will try hard. `test_security()` checks your configuration (addnodes/safenodes, funcs, attrs) against given list of possible attack code or against built-in list of attacks. `test_security()` returns True if everything is OK (all attacks raised ValidationException) or False if something passed.
 
 This code will never print (I hope).

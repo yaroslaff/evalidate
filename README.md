@@ -246,7 +246,7 @@ int(1)
 This is code of `examples/products.py`. Expression is validated and compiles once and executed many times, so filtering is both fast and secure.
 
 
-```python
+~~~python
 #!/usr/bin/env python3
 
 import requests

@@ -63,7 +63,7 @@ inherit from base exception class `EvalException`.
 ## Configure validation
 Evalidate is very flexible, depending on parameters, same code can either pass validation or raise exception.
 
-### safenodes and addnodes
+### Safenodes and addnodes
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument `safenodes` like:
 ```python
 result = evalidate.safeeval(src, context, safenodes=['Expression','BinOp','Num','Add'])

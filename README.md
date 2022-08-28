@@ -293,7 +293,7 @@ With second src line ('stock>0 and price>8') it gives:
     
 Note, it uses simple and slow function safeeval(). Each call of safeeval it will parse and validate same source code, and it's not effective.  But it's OK if you have small set of elements to check.
 
-For better example check `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/ and it's much more effective on large lists.
+For better example see `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/ and it's much more effective on large lists.
 
 ~~~shell
 # print all 100 products

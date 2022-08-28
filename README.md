@@ -2,16 +2,17 @@
 Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
 
 ## Purpose
-Originally it's developed for filtering (performing boolean expressions) complex data structures e.g. raise salary if 
+Originally it's developed for filtering (performing boolean expressions) complex data structures e.g. find employees:
 
 ```python
 person.age>30 and person.salary>5000 or "Jack" in person.children
 ```
-or, like simple firewall, allow inbound traffic if:
 
+Or find cheap smartphones:
 ```python
-(packet.tcp.dstport==22 or packet.tcp.dstport==80) and packet.tcp.srcip in WhiteListIP
+category="smartphones" and price<300 and stock>0
 ```
+
 But also, it can be used for other expressions, e.g. arithmetical, like
 ```python
 a+b-100
@@ -29,7 +30,7 @@ Built-in python features such as compile() or eval() are quite powerful to run a
 
 
 ## TL;DR. Just give me safe eval!
-```python
+```python       
 from evalidate import safeeval, EvalException
 
 src="a+b" # source code
@@ -59,15 +60,15 @@ output will be: `ERR: Operation type Call is not allowed`
 Evalidate throws exceptions `CompilationException`, `ValidationException`, `ExecutionException`. All of them
 inherit from base exception class `EvalException`.
 
-## Extending evalidate: safenodes and addnodes
+## Configure validation
+Evalidate is very flexible, depending on parameters, same code can either pass validation or raise exception.
+
+### safenodes and addnodes
 Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument `safenodes` like:
 ```python
-result = evalidate.safeeval(src,c, safenodes=['Expression','BinOp','Num','Add'])
+result = evalidate.safeeval(src, context, safenodes=['Expression','BinOp','Num','Add'])
 ```
-this will be enough for '1+1' expression (in src argument), but not for '1-1'. If you will try '1-1', it will report error:
-
-    ERROR: Validation error: Operaton type Sub is not allowed
-
+this will be enough for `1+1` expression (in src argument), but not for `1-1`. If you will try '1-1', it will report error: `ERROR: Validation error: Operaton type Sub is not allowed`
 
 This way you can start from scratch and allow only required operations. As an alternative, you can use built-in list of allowed operations and extend it if needed, using `addnodes` argument.
 
@@ -84,9 +85,9 @@ Please note, using 'Mult' operation isn't very secure, because for strings it ca
 ```python
 src='"a"*1000000*1000000*1000000*1000000'
 ```    
-    ERROR: Runtime error (OverflowError): repeated string is too long
+and will raise runtime exception: `ERROR: Runtime error (OverflowError): repeated string is too long`
 
-## Allowing function calls
+### Allowing function calls
 Evalidate does not allow any function calls by default:
 ```
 >>> from evalidate import safeeval, EvalException
@@ -109,9 +110,44 @@ evalidate.safeeval('1+round(2)', addnodes=['Call'], funcs=['int'])
 ```
 This will throw `ValidationException`.
 
-Aattributes calls (`"aaa".startswith("a")`) could be allowed (with proper `addnodes` and `attrs`) but
+Attributes calls (`"aaa".startswith("a")`) could be allowed (with proper `addnodes` and `attrs`) but
 other indirect function calls (like: `__builtins__['eval']("print(1)")`) are not allowed,
 
+
+### accessing attributes (attrs parameter), data as classes
+
+If data represented as object with attributes (not as dictionary) we have to add 'Attribute' to safe nodes. Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
+
+```python
+from evalidate import safeeval, EvalException
+                        
+class Person:
+    pass
+                        
+p = Person()
+p.salary=1000
+p.age=5
+                        
+data = {'p':p}
+src = 'p.salary+200+p.age*25'
+try:                        
+    result = safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])                        
+    print("result", result)
+except EvalException as e:
+    print("ERR:",e)
+```
+
+### calling attributes
+This code will not work:
+~~~
+safeeval('"abc".startswith("a")')
+~~~
+Because: `evalidate.ValidationException: Operation type Call is not allowed`
+
+To make it working:
+~~~
+print(safeeval('"abc".startswith("a")', addnodes=['Call', 'Attribute'], attrs=['startswith']))
+~~~
 
 ## Functions
 
@@ -255,8 +291,9 @@ With second src line ('stock>0 and price>8') it gives:
     {'price': 12, 'book': 'Sirens of Titan', 'stock': 4}
     {'price': 14, 'book': 'Choke', 'stock': 2}
     
+Note, it uses simple and slow function safeeval(). Each call of safeeval it will parse and validate same source code, and it's not effective.  But it's OK if you have small set of elements to check.
 
-Also, see `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/.
+For better example check `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/ and it's much more effective on large lists.
 
 ~~~shell
 # print all 100 products
@@ -274,27 +311,6 @@ Also, see `examples/products.py` in repo. It uses dataset "products" from https:
 # cheap smartphones
 ./products.py 'category=="smartphones" and price<300'
 ~~~
-
-### Data as objects
-Data represented as object with attributes (not as dictionary) (we have to add 'Attribute' to safe nodes). Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
-```python
-from evalidate import safeeval, EvalException
-                        
-class Person:
-    pass
-                        
-p = Person()
-p.salary=1000
-p.age=5
-                        
-data = {'p':p}
-src = 'p.salary+200+p.age*25'
-try:                        
-    result = safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])                        
-    print("result", result)
-except EvalException as e:
-    print("ERR:",e)
-```
                                                 
 ### Validate, compile and evaluate code
 ```python

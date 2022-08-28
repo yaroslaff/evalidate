@@ -2,13 +2,9 @@
 Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
 
 ## Purpose
-Originally it's developed for filtering (performing boolean expressions) complex data structures e.g. find employees:
+Originally it's developed for filtering complex data structures e.g. 
 
-```python
-person.age>30 and person.salary>5000 or "Jack" in person.children
-```
-
-Or find cheap smartphones:
+Find cheap smartphones available for sale:
 ```python
 category="smartphones" and price<300 and stock>0
 ```
@@ -17,6 +13,8 @@ But also, it can be used for other expressions, e.g. arithmetical, like
 ```python
 a+b-100
 ```
+
+Evalidate tries to be both secure and fast (when properly used).
 
 ## Install
 
@@ -241,7 +239,7 @@ int(1)
 
 
 
-## Examples
+## Example
 
 ### Filtering by user-supplied condition ###
 

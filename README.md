@@ -244,56 +244,46 @@ int(1)
 ## Examples
 
 ### Filtering by user-supplied condition ###
+
+This is code of `examples/products.py`. Expression is validated and compiles once and executed many times, so filtering is both fast and secure.
+
+
 ```python
-from evalidate import safeeval, EvalException
-    
-depot = [
-    {
-        'book': 'Sirens of Titan',
-        'price': 12,
-        'stock': 4
-    },
-    {
-        'book': 'Gone Girl',
-        'price': 9.8,
-        'stock': 0
-    },
-    {
-        'book': 'Choke',
-        'price': 14,
-        'stock': 2
-    },
-    {
-        'book': 'Pulp',
-        'price': 7.45,
-        'stock': 4
-    }
-]
-    
-#src='stock==0' # books out of stock
-src='stock>0 and price>8' # expensive book available for sale
-    
-for book in depot:
+#!/usr/bin/env python3
+
+import requests
+from evalidate import evalidate, ValidationException, CompilationException
+import json
+import sys
+
+data = requests.get('https://dummyjson.com/products?limit=100').json()
+
+try:
+    src = sys.argv[1]
+except IndexError:
+    src = 'True'
+
+try:
+    node = evalidate(src)
+except (ValidationException, CompilationException) as e:
+    print(e)
+    sys.exit(1)
+
+
+code = compile(node, '<user filter>', 'eval')
+
+c=0
+for p in data['products']:
+    # print(p)
     try:
-        result = safeeval(src,book)
-        if result:
-            print(book)
-    except EvalException as e:
-        print("ERR:", e)
-```    
-    
-With first src line ('stock==0') it gives:
-
-    {'price': 9.8, 'book': 'Gone Girl', 'stock': 0}
-
-With second src line ('stock>0 and price>8') it gives:
-
-    {'price': 12, 'book': 'Sirens of Titan', 'stock': 4}
-    {'price': 14, 'book': 'Choke', 'stock': 2}
-    
-Note, it uses simple and slow function safeeval(). Each call of safeeval it will parse and validate same source code, and it's not effective.  But it's OK if you have small set of elements to check.
-
-For better example see `examples/products.py` in repo. It uses dataset "products" from https://dummyjson.com/ and it's much more effective on large lists.
+        r = eval(code, p.copy())
+        if r:
+            print(json.dumps(p, indent=2))
+            c+=1
+    except Exception as e:
+        print("Runtime exception:", e)
+print("# {} products matches".format(c))
+~~~
 
 ~~~shell
 # print all 100 products
@@ -311,37 +301,7 @@ For better example see `examples/products.py` in repo. It uses dataset "products
 # cheap smartphones
 ./products.py 'category=="smartphones" and price<300'
 ~~~
-                                                
-### Validate, compile and evaluate code
-```python
-import evalidate
-
-def test(src):   
-    data={'one':1,'two':2}
-
-    try:
-        node = evalidate.evalidate(src)
-    except evalidate.CompilationException:
-        print("Bad source code:", repr(src))
-        return
-    except evalidate.ValidationException:
-        print("Dangerous code:", repr(src))
-        return
-
-    code = compile(node,'<usercode>','eval')
-    try:
-        result = eval(code,{},data)
-        print("result:", result)
-    except Exception as e:
-        # almost any kind of exception can happen here
-        print("Runtime exception:",e)
-
-srclist=['one+two+3', 'one+two+3+os.system("clear")', '', '1/0']
-
-for src in srclist:
-    test(src)    
-```    
-
+                                       
 
 ## Similar projects and benchmark
 

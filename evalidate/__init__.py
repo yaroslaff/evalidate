@@ -4,6 +4,8 @@
 
 import ast
 
+__version__ = '1.0.2'
+
 
 class EvalException(Exception):
     pass
@@ -135,6 +137,11 @@ def safeeval(expression, context={}, safenodes=None, addnodes=None, funcs=None, 
 
     Returns:
         Any: the result of the expression
+
+    Raises:
+        ExecutionException - if the expression fails to execute
+        CompilationException - if the expression fails to parse
+        ValidationException - if the expression fails safety checks
 
     Example:
         >>> import evalidate

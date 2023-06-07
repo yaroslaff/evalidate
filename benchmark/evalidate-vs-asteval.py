@@ -4,27 +4,24 @@ from asteval import Interpreter
 import timeit
 import evalidate
 import requests
+import simpleeval
 
-context = {'a':1, 'b': 2}
-src="""a+b"""
-node = evalidate.evalidate(src)
-code = compile(node, '<usercode>', 'eval')
+# context = {'a':1, 'b': 2}
+# src="""a+b"""
+# node = evalidate.evalidate(src)
+# code = compile(node, '<usercode>', 'eval')
+
+"""
+    Our test: we prepare large list of products and filter it, find all items cheaper then 20
+"""
+
+mult = 10000
+
+products = requests.get('https://dummyjson.com/products?limit=100').json()['products'] * mult
+accurate_counter = 8 * mult
 
 
-products = requests.get('https://dummyjson.com/products?limit=100').json()['products'] * 1000
-
-# global asteval interpreter
-gi = Interpreter()
-
-gi.symtable = context
-
-def test_asteval():
-    aeval = Interpreter({**context}, minimal=True)
-    result = aeval(src)
-
-def test_asteval_reuse_interpreter():
-    result = gi(src)
-
+# gi.symtable = context
 
 def test_asteval_products():
     aeval = Interpreter()
@@ -38,12 +35,22 @@ counter
     aeval.symtable['products'] = products
 
     result = aeval(src)
+    assert(result == accurate_counter)
 
-def test_evalidate():
-    result = evalidate.safeeval(src, context)
+def test_simpleeval_products():
+    code = """price < 20"""
 
-def test_evalidate_compiled(code):
-    result = eval(code)
+    s = simpleeval.SimpleEval()
+    parsed = s.parse(code)
+
+    counter = 0
+
+    for p in products:
+        s.names = p
+        if s.eval(code, previously_parsed=parsed, ):
+            counter += 1
+    assert(counter == accurate_counter)
+
 
 def test_evalidate_products():
     src="""price < 20"""
@@ -54,34 +61,20 @@ def test_evalidate_products():
     for p in products:
         if eval(code, p):
             counter+=1
-
+    assert(counter == accurate_counter)
 
 def main():
 
-    n = 100000
-
-    print("Src:", src)
-    print("Context:", context)
-    print("Runs:", n)
-
-    t = timeit.timeit('test_asteval()', setup='from __main__ import test_asteval', number=n)
-    print(f"asteval: {t:.3f}s")
-
-    t = timeit.timeit('test_asteval_reuse_interpreter()', setup='from __main__ import test_asteval_reuse_interpreter', number=n)
-    print(f"asteval (reuse interpreter): {t:.3f}s")
-
-
-    t = timeit.timeit('test_evalidate()', setup='from __main__ import test_evalidate', number=n)
-    print(f"safeeval: {t:.3f}s")
-
-    t = timeit.timeit('eval(code, context)', setup='from __main__ import code, context', number=n)
-    print(f"evalidate/compile/eval (reuse compiled code): {t:.3f}s")
+    print(f"Products: {len(products)} items")
 
     t = timeit.timeit('test_asteval_products()', setup='from __main__ import test_asteval_products, products', number=1)
-    print(f"test_asteval_products() ({len(products)} items): {t:.3f}s")
+    print(f"test_asteval_products(): {t:.3f}s")
+
+    t = timeit.timeit('test_simpleeval_products()', setup='from __main__ import test_simpleeval_products, products', number=1)
+    print(f"test_simpleeval_products(): {t:.3f}s")
 
     t = timeit.timeit('test_evalidate_products()', setup='from __main__ import test_evalidate_products, products', number=1)
-    print(f"test_evalidate_products() ({len(products)} items): {t:.3f}s")
+    print(f"test_evalidate_products(): {t:.3f}s")
 
 
 if __name__ == '__main__':

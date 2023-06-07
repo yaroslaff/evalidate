@@ -309,21 +309,27 @@ While asteval can compute much more complex code (define functions, use python m
 - asteval is much slower (evalidate can be used at speed of eval() python bytecode)
 - user can provide source code which runs very long time and consumes many resources 
 
+
+[simpleeval](https://github.com/danthedeckie/simpleeval)
+Very similar project, using AST approach too and optimized to re-evaluate pre-parsed expressions. But parsed expressions are stored as more high-level [ast.Expr](https://docs.python.org/3/library/ast.html#ast.Expr) type and this approach is ~10 times slower, while evalidate uses python native `code` type and evaluation itself goes at speed of python eval()
+
+
 evalidate is good to run short same code against different data.
 
 ## Benchmarking
-We use `evalidate-vs-asteval.py` which is in benchmark/ directory of repository
+We use `evalidate-vs-asteval.py` which is in benchmark/ directory of repository.
+We prepare list of 1 million of products (actually, we take just 100 products sample, but repeat it 10 000 times to get 1 million), and then filter it, finding only specific products on "untrusted user-supplied expression" (`price < 20` in this case)
+
 ~~~
-$ ./evalidate-vs-asteval.py 
-Src: a+b
-Context: {'a': 1, 'b': 2}
-Runs: 100000
-asteval: 3.538s
-asteval (reuse interpreter): 1.232s
-safeeval: 2.384s
-evalidate/compile/eval (reuse compiled code): 0.017s
+Products: 1000000 items
+test_asteval_products(): 25.920s
+test_simpleeval_products(): 1.779s
+test_evalidate_products(): 0.160s
 ~~~
-0.017s vs 1.232s
+
+As you see, evalidate is almost 10 times faster then simpleeval and both are much faster then asteval.
+
+Maybe my test is not perfectly optimized (I'm not expert with simpleeval/asteval), if you can suggest better filtering sample code (which produces faster result), I will include it. But benchmark code must assume expression as unknown and untrusted.
 
 
 ## Read about eval() risks

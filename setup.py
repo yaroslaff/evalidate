@@ -6,7 +6,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname), encoding='utf-8').read()
 
 setup(name='evalidate',
-      version='1.0.2',
+      version='1.0.3',
       url='http://github.com/yaroslaff/evalidate',
       author='Yaroslav Polyakov',
       author_email='xenon@sysattack.com',

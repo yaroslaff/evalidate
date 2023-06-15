@@ -1,4 +1,4 @@
-from . import ValidationException, evalidate
+from . import ValidationException, evalidate, Expr
 
 simple_attacks = [
 """
@@ -44,7 +44,7 @@ boom_payload = [
 ]
 
 
-def test_attack(attack, safenodes=None, addnodes=None, funcs=None, attrs=None, verbose=False):
+def test_attack(attack, nodes=None, blank=False, funcs=None, attrs=None, verbose=False):
     '''
         test attack. return True if attack detected on validation, good. (False if passed, bad)
     '''
@@ -53,7 +53,8 @@ def test_attack(attack, safenodes=None, addnodes=None, funcs=None, attrs=None, v
         print("Testing attack code:\n{}".format(attack))
 
     try:
-        node = evalidate(attack, safenodes=safenodes, addnodes=addnodes, funcs=funcs, attrs=attrs)
+        e = Expr(attack, nodes=nodes, blank=blank, funcs=funcs, attrs=attrs)
+        # node = evalidate(attack, safenodes=safenodes, addnodes=addnodes, funcs=funcs, attrs=attrs)
     except ValidationException as e:
         if verbose:
             print("Good! Attack blocked: {}".format(e))
@@ -65,7 +66,7 @@ def test_attack(attack, safenodes=None, addnodes=None, funcs=None, attrs=None, v
 
 
 
-def test_security(attacks=None, safenodes=None, addnodes=None, funcs=None, attrs=None, verbose=False):
+def test_security(attacks=None, nodes=None, blank=False, funcs=None, attrs=None, verbose=False):
     ''' 
     test all user-given attacks, or built-in attacks.
     Return value: True if good (all attacks detected), False if at least one attack passes validation
@@ -73,17 +74,16 @@ def test_security(attacks=None, safenodes=None, addnodes=None, funcs=None, attrs
 
     # test user-supplied attacks
     if attacks:
-        return all( [test_attack(attack=attack, safenodes=safenodes, addnodes=addnodes, funcs=funcs, attrs=attrs, verbose=verbose) for attack in attacks] )
+        return all( [test_attack(attack=attack, nodes=nodes, blank=blank, funcs=funcs, attrs=attrs, verbose=verbose) for attack in attacks] )
 
 
     # test built-in set of attacks
-    if not all([test_attack(attack=attack, safenodes=safenodes, addnodes=addnodes, funcs=funcs, attrs=attrs, verbose=verbose) for attack in simple_attacks]):
+    if not all([test_attack(attack=attack, nodes=nodes, blank=blank, funcs=funcs, attrs=attrs, verbose=verbose) for attack in simple_attacks]):
         return False
 
     for payload in boom_payload:
         attack = boom.format(payload=payload)
-        if not test_attack(attack=attack, safenodes=safenodes, addnodes=addnodes, funcs=funcs, attrs=attrs, verbose=verbose):
+        if not test_attack(attack=attack, nodes=nodes, blank=blank, funcs=funcs, attrs=attrs, verbose=verbose):
             return False
         
-
     return True

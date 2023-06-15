@@ -1,5 +1,5 @@
 ﻿# Evalidate
-Evalidate is simple python module for safe eval()'uating user-supplied (possible malicious) logical expressions in python syntax.
+Evalidate is simple python module for safe and very fast eval()'uating user-supplied (possible malicious) python expressions.
 
 ## Purpose
 Originally it's developed for filtering complex data structures e.g. 
@@ -14,7 +14,7 @@ But also, it can be used for other expressions, e.g. arithmetical, like
 a+b-100
 ```
 
-Evalidate tries to be both secure and fast (when properly used).
+Evalidate is fastest among all (known to me) secure eval pythong modules.
 
 ## Install
 
@@ -29,28 +29,21 @@ Built-in python features such as compile() or eval() are quite powerful to run a
 
 ## TL;DR. Just give me safe eval!
 ```python       
-from evalidate import safeeval, EvalException
+from evalidate import Expr, EvalException
 
-src="a+b" # source code
-# src="__import__('os').system('clear')"
-c={'a': 1, 'b': 2} # context, variables which will be available for code
+src = 'a + 40 > b'
+# src = "__import__('os').system('clear')"
 
 try:
-    result = safeeval(src,c)
-    print(result)
+    print(Expr(src).eval({'a':10, 'b':42}))
 except EvalException as e:
-    print("ERR:", e)
+    print(e)
 ```
 
-Gives output:
+Gives output: `True`
 
-    3
-
-In case of dangerous code:
-```python
-src="__import__('os').system('clear')"
-```    
-    
+In case of dangerous code (uncomment second src line to test):
+  
 output will be: `ERR: Operation type Call is not allowed`
 
 
@@ -61,143 +54,40 @@ inherit from base exception class `EvalException`.
 ## Configure validation
 Evalidate is very flexible, depending on parameters, same code can either pass validation or raise exception.
 
-### Safenodes and addnodes
-Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument `safenodes` like:
+### Allowing other nodes (operations)
+
+Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). 
+Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument `nodes` like:
 ```python
-result = evalidate.safeeval(src, context, safenodes=['Expression','BinOp','Num','Add'])
+Expr('2*2', nodes=['Mult']).eval()
 ```
-this will be enough for `1+1` expression (in src argument), but not for `1-1`. If you will try '1-1', it will report error: `ERROR: Validation error: Operaton type Sub is not allowed`
 
-This way you can start from scratch and allow only required operations. As an alternative, you can use built-in list of allowed operations and extend it if needed, using `addnodes` argument.
-
-For example, "1*1" will give error:
-
-  ERROR: Validation error: Operaton type Mult is not allowed
-
-
-But it will work with addnodes:
-```python
-result = evalidate.safeeval(src,c, addnodes=['Mult'])
-```    
-Please note, using 'Mult' operation isn't very secure, because for strings it can lead to Out-of-memory:
-```python
-src='"a"*1000000*1000000*1000000*1000000'
-```    
-and will raise runtime exception: `ERROR: Runtime error (OverflowError): repeated string is too long`
+If you want to start from blank whitelist (discard built-in whitelist), use `Expr(expression, blank=True)` and then add each node manually (only what you really need) 
 
 ### Allowing function calls
-Evalidate does not allow any function calls by default:
+Evalidate does not allow any function calls by default.
+
+To enable `int()` function, need to allow 'Call' node and add this function to list of allowed function:
 ```python
->>> from evalidate import safeeval, EvalException
->>> try:
-...   safeeval('int(1)')
-... except EvalException as e:
-...   print(e)
-... 
-Operation type Call is not allowed
+Expr('int(36.6)', nodes=['Call'], funcs=['int']).eval()
+```
+If you want to call str methods:
+```python
+Expr('name.startswith("John")', nodes=['Attribute', 'Call'], attrs=['startswith']).eval(dict(name='John Doe'))
 ```
 
-To enable int() function, need to allow 'Call' node and  add this function to list of allowed function:
-```python
->>> evalidate.safeeval('int(1)', addnodes=['Call'], funcs=['int'])
-1
-```
-Attempt to call other functions will fail (because it's not in funcs list):
-```python
-evalidate.safeeval('1+round(2)', addnodes=['Call'], funcs=['int'])
-```
-This will throw `ValidationException`.
-
-Attributes calls (`"aaa".startswith("a")`) could be allowed (with proper `addnodes` and `attrs`) but
-other indirect function calls (like: `__builtins__['eval']("print(1)")`) are not allowed,
+But even with this settings, exploiting it with expression like `__builtins__["eval"](1)` will fail (good!).
 
 
-### Accessing attributes (attrs parameter); data as classes
-
-If data represented as object with attributes (not as dictionary) we have to add 'Attribute' to safe nodes. Increase salary for person for 200, and additionaly 25 for each year (s)he works in company.
-
-```python
-from evalidate import safeeval, EvalException
-                        
-class Person:
-    pass
-                        
-p = Person()
-p.salary=1000
-p.age=5
-                        
-data = {'p':p}
-src = 'p.salary+200+p.age*25'
-try:                        
-    result = safeeval(src,data,addnodes=['Attribute','Mult'], attrs=['salary', 'age'])                        
-    print("result", result)
-except EvalException as e:
-    print("ERR:",e)
-```
-
-### Calling attributes
-This code will not work:
-~~~python
-safeeval('"abc".startswith("a")')
+### Exporting my functions to eval code
 ~~~
-Because: `evalidate.ValidationException: Operation type Call is not allowed`
+def one():
+  return 1
 
-To make it working:
-~~~python
-print(safeeval('"abc".startswith("a")', addnodes=['Call', 'Attribute'], attrs=['startswith']))
+Expr('one()', nodes=['Call'], my_funcs={"one": one}).eval()
 ~~~
 
-## Functions
-
-`safeeval()` is simplest possible replacement to `eval()`. It is good to evaluate something once or few times, where speed is not an issue. If you need to eval same code 2nd time, it will take same 'long' time to parse/validate code. 
-
-`evalidate()` is just little more complex, but returns validated safe python AST node, which can be compiled to python bytecode, and executed at full speed. (And this code is safe after evalidate)
-
-`security.test_security()` checks configuration(nodes, funcs, attrs) against set of attacks.
-
-
-### evalidate.safeeval()
-
-```python
-result = safeeval(expression, context={}, safenodes=None, addnodes=None, funcs=None, attrs=None)
-```
-
-`safeeval` is higher-level wrapper of evalidate(), which validates code and runs it (if validation is successful). Throws exception if compilation(parsing), validation or execution fails.
-
-`expression` - python expression like `salary+100` or `category="smartphones" and price<300 and stock>0`.
-
-`context` - dictionary of variables, available for evaluated code.
-
-`safenodes`, `addnodes`, `funcs` and `attrs` are same as in `evalidate()`
-
-returns result of evaluation of expression. 
-
-### evalidate.evalidate()     
-```python
-node = evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=None)
-```
-`evalidate()` is main (and recommended to use) method, performs parsing of python expession, validates it, and returns python AST (Abstract Syntax Tree) structure, which can be later compiled and executed. Evalidate does not evaluates code, use `compile()` and `eval()` after `evalidate()`.
-
-
-```python            
-
->>> import evalidate
->>> node = evalidate.evalidate('1+2')
->>> code = compile(node,'<usercode>','eval')
->>> eval(code)
-3
-```    
-    
-- `expression` - python expression `salary+100` or `category="smartphones" and price<300 and stock>0`.
-- `safenodes` - list of allowed nodes. This will *override* built-in list of allowed nodes. e.g. `safenodes=['Expression','BinOp','Num','Add'])`
-- `addnodes` - list of allowed nodes. This will *extend* built-in lsit of allowed nodes. e.g. `addnodes=['Mult']`
-- `funcs` - list of allowed function calls. You need to add 'Call' to safe nodes. e.g. `funcs=['int']`
-- `attrs` - list of allowed attributes. You need to add 'Attribute' to attrs. e.g. `attrs=['salary']`.
-
-    
-evalidate() throws `CompilationException` if cannot parse source code and `ValidationException` if it doesn't like source code (if code has unsafe operations).
-    
-Even if evalidate is successful, this doesn't guarantees that code will run well, For example, code still can have `NameError` (if tries to access undefined variable) or `ZeroDivisionError`.
+## Limitations
 
 evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.parse) and returns [AST node](https://docs.python.org/3/library/ast.html#node-classes).
 
@@ -250,7 +140,7 @@ This is code of `examples/products.py`. Expression is validated and compiled onc
 #!/usr/bin/env python3
 
 import requests
-from evalidate import evalidate, ValidationException, CompilationException
+from evalidate import Expr, ValidationException, CompilationException, ExecutionException
 import json
 import sys
 
@@ -262,23 +152,20 @@ except IndexError:
     src = 'True'
 
 try:
-    node = evalidate(src)
+    expr = Expr(src)
 except (ValidationException, CompilationException) as e:
     print(e)
     sys.exit(1)
-
-
-code = compile(node, '<user filter>', 'eval')
 
 c=0
 for p in data['products']:
     # print(p)
     try:
-        r = eval(code, p.copy())
+        r = expr.eval(p)
         if r:
             print(json.dumps(p, indent=2))
             c+=1
-    except Exception as e:
+    except ExecutionException as e:
         print("Runtime exception:", e)
 print("# {} products matches".format(c))
 ~~~
@@ -317,17 +204,18 @@ Very similar project, using AST approach too and optimized to re-evaluate pre-pa
 evalidate is good to run short same code against different data.
 
 ## Benchmarking
-We use `evalidate-vs-asteval.py` which is in benchmark/ directory of repository.
+We use `benchmark/benchmark.py` in this repository.
 We prepare list of 1 million of products (actually, we take just 100 products sample, but repeat it 10 000 times to get 1 million), and then filter it, finding only specific products on "untrusted user-supplied expression" (`price < 20` in this case)
 
 ~~~
 Products: 1000000 items
-test_asteval_products(): 25.920s
-test_simpleeval_products(): 1.779s
-test_evalidate_products(): 0.160s
+evalidate_raw_eval(): 0.266s
+evalidate_eval(): 0.326s
+test_simpleeval(): 1.824s
+test_asteval(): 26.106s
 ~~~
 
-As you see, evalidate is almost 10 times faster then simpleeval and both are much faster then asteval.
+As you see, evalidate is few times faster then simpleeval and both are much faster then asteval.
 
 Maybe my test is not perfectly optimized (I'm not expert with simpleeval/asteval), if you can suggest better filtering sample code (which produces faster result), I will include it. But benchmark code must assume expression as unknown and untrusted.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import requests
-from evalidate import evalidate, ValidationException, CompilationException
+from evalidate import Expr, ValidationException, CompilationException, ExecutionException
 import json
 import sys
 
@@ -13,22 +13,19 @@ except IndexError:
     src = 'True'
 
 try:
-    node = evalidate(src)
+    expr = Expr(src)
 except (ValidationException, CompilationException) as e:
     print(e)
     sys.exit(1)
-
-
-code = compile(node, '<user filter>', 'eval')
 
 c=0
 for p in data['products']:
     # print(p)
     try:
-        r = eval(code, p.copy())
+        r = expr.eval(p)
         if r:
             print(json.dumps(p, indent=2))
             c+=1
-    except Exception as e:
+    except ExecutionException as e:
         print("Runtime exception:", e)
 print("# {} products matches".format(c))

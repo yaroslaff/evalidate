@@ -5,6 +5,8 @@ import timeit
 import evalidate
 import requests
 import simpleeval
+import json
+from pprint import pprint
 
 # context = {'a':1, 'b': 2}
 # src="""a+b"""
@@ -16,6 +18,7 @@ import simpleeval
 """
 
 mult = 10000
+# mult = 1
 
 products = requests.get('https://dummyjson.com/products?limit=100').json()['products'] * mult
 accurate_counter = 8 * mult
@@ -23,7 +26,7 @@ accurate_counter = 8 * mult
 
 # gi.symtable = context
 
-def test_asteval_products():
+def test_asteval():
     aeval = Interpreter()
     src = """
 counter=0
@@ -37,7 +40,7 @@ counter
     result = aeval(src)
     assert(result == accurate_counter)
 
-def test_simpleeval_products():
+def test_simpleeval():
     code = """price < 20"""
 
     s = simpleeval.SimpleEval()
@@ -51,30 +54,44 @@ def test_simpleeval_products():
             counter += 1
     assert(counter == accurate_counter)
 
-
-def test_evalidate_products():
+def evalidate_raw_eval():
     src="""price < 20"""
-    node = evalidate.evalidate(src)
-    code = compile(node, '<usercode>', 'eval')
+    e = evalidate.Expr(src)
     counter = 0
 
     for p in products:
-        if eval(code, p):
+        if eval(e.code, p):
             counter+=1
     assert(counter == accurate_counter)
+
+def evalidate_eval():
+    src="""price < 20"""
+    e = evalidate.Expr(src)
+    counter = 0
+
+    for p in products:
+        if e.eval(p):
+            counter+=1
+
+    assert(counter == accurate_counter)
+
 
 def main():
 
     print(f"Products: {len(products)} items")
 
-    t = timeit.timeit('test_asteval_products()', setup='from __main__ import test_asteval_products, products', number=1)
-    print(f"test_asteval_products(): {t:.3f}s")
 
-    t = timeit.timeit('test_simpleeval_products()', setup='from __main__ import test_simpleeval_products, products', number=1)
-    print(f"test_simpleeval_products(): {t:.3f}s")
+    t = timeit.timeit('evalidate_raw_eval()', setup='from __main__ import evalidate_raw_eval, products', number=1)
+    print(f"evalidate_raw_eval(): {t:.3f}s")
 
-    t = timeit.timeit('test_evalidate_products()', setup='from __main__ import test_evalidate_products, products', number=1)
-    print(f"test_evalidate_products(): {t:.3f}s")
+    t = timeit.timeit('evalidate_eval()', setup='from __main__ import evalidate_eval, products', number=1)
+    print(f"evalidate_eval(): {t:.3f}s")
+
+    t = timeit.timeit('test_simpleeval()', setup='from __main__ import test_simpleeval, products', number=1)
+    print(f"test_simpleeval(): {t:.3f}s")
+
+    t = timeit.timeit('test_asteval()', setup='from __main__ import test_asteval, products', number=1)
+    print(f"test_asteval(): {t:.3f}s")
 
 
 if __name__ == '__main__':

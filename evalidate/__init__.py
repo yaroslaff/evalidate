@@ -4,7 +4,7 @@
 
 import ast
 
-__version__ = '1.0.2'
+__version__ = '1.1.0'
 
 
 class EvalException(Exception):
@@ -97,9 +97,68 @@ class SafeAST(ast.NodeVisitor):
             ast.NodeVisitor.generic_visit(self, node)
         else:
             raise ValidationException(
-                "Operation type {optype} is not allowed".format(
+                "Node type {optype!r} is not allowed. (whitelist it manually)".format(
                     optype=type(node).__name__))
 
+
+class Expr():
+    def __init__(self, expr, nodes=None, blank=False, funcs=None, my_funcs=None, attrs=None, filename=None):
+        self.expr = expr
+        self.my_funcs = my_funcs
+
+        # default nodes
+        if blank:
+            self.nodes = list()
+        else:
+            self.nodes = [
+                # 123, 'asdf'
+                'Num', 'Str',
+                # any expression or constant
+                'Expression', 'Constant',
+                # == ...
+                'Compare', 'Eq', 'NotEq', 'Gt', 'GtE', 'Lt', 'LtE',
+                # variable name
+                'Name', 'Load',
+                'BinOp',
+                'Add', 'Sub',
+                'Subscript', 'Index',  # person['name']
+                'BoolOp', 'And', 'Or', 'UnaryOp', 'Not',  # True and True
+                "In", "NotIn",  # "aaa" in i['list']
+                "IfExp",  # for if expressions, like: expr1 if expr2 else expr3
+                "NameConstant",  # for True and False constants
+                "Div", "Mod"
+            ]
+
+        self.funcs = funcs or list()
+        if self.my_funcs:
+            self.funcs.extend(self.my_funcs.keys())
+
+        self.attrs = attrs or list()
+
+        if nodes:
+            self.nodes.extend(nodes)
+
+        try:
+            self.node = ast.parse(self.expr, '<usercode>', 'eval')
+        except SyntaxError as e:
+            raise CompilationException(e)
+
+        v = SafeAST(safenodes=self.nodes, funcs=self.funcs, attrs=attrs)
+        v.visit(self.node)
+
+        self.code = compile(self.node, filename or '<usercode>', 'eval')
+
+    def eval(self, ctx=None):
+        
+        try:
+            result = eval(self.code, self.my_funcs, ctx)
+        except Exception as e:
+            raise ExecutionException(e)
+
+        return result
+    
+    def __str__(self):
+        return("Expr(expr={expr!r})".format(expr=self.expr))
 
 def evalidate(expression, safenodes=None, addnodes=None, funcs=None, attrs=None):
     """Validate expression.

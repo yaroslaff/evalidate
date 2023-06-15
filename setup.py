@@ -1,12 +1,18 @@
 from setuptools import setup
+from importlib.machinery import SourceFileLoader
 import os
 
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname), encoding='utf-8').read()
 
+def get_version(path):
+    foo = SourceFileLoader(os.path.basename(path), path).load_module()
+    return foo.__version__
+
+
 setup(name='evalidate',
-      version='1.0.3',
+      version=get_version('evalidate/__init__.py'),
       url='http://github.com/yaroslaff/evalidate',
       author='Yaroslav Polyakov',
       author_email='xenon@sysattack.com',

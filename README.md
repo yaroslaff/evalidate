@@ -114,7 +114,7 @@ In my test, works well with 200 nested int(): `int(int(.... int(1)...))` but not
 
 
 ### evalidate.security.test_security()
-Evalidate is very flexible and it's possible to shoot yourself in foot if you will try hard. `test_security()` checks your configuration (addnodes/safenodes, funcs, attrs) against given list of possible attack code or against built-in list of attacks. `test_security()` returns True if everything is OK (all attacks raised ValidationException) or False if something passed.
+Evalidate is very flexible and it's possible to shoot yourself in foot if you will try hard. `test_security()` checks your configuration (nodes, funcs, attrs) against given list of possible attack code or against built-in list of attacks. `test_security()` returns True if everything is OK (all attacks raised ValidationException) or False if something passed.
 
 This code will never print (I hope).
 ~~~python

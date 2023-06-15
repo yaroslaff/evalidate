@@ -80,7 +80,7 @@ But even with this settings, exploiting it with expression like `__builtins__["e
 
 
 ### Exporting my functions to eval code
-~~~
+~~~python
 def one():
   return 1
 
@@ -90,7 +90,7 @@ Expr('one()', nodes=['Call'], my_funcs={"one": one}).eval()
 ## Improve speed by using native eval() with validated code
 Evalidate is very fast, but it's still takes CPU cycles... If you want to achieve maximal possible speed, you can use python native [eval](https://docs.python.org/3/library/functions.html#eval) with this kind of code:
 
-~~~
+~~~python
 from evalidate import Expr
 
 d = dict(a=1, b=2)

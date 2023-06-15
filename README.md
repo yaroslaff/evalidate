@@ -62,7 +62,7 @@ Code is considered valid only if all of it's operations are in this list. You ca
 Expr('2*2', nodes=['Mult']).eval()
 ```
 
-If you want to start from blank whitelist (discard built-in whitelist), use `Expr(expression, blank=True)` and then add each node manually (only what you really need) 
+If you want to start from blank whitelist (discard built-in whitelist), use `Expr(expression, blank=True, nodes=[...])` and then add each node manually (only what you really need) 
 
 ### Allowing function calls
 Evalidate does not allow any function calls by default.
@@ -86,6 +86,21 @@ def one():
 
 Expr('one()', nodes=['Call'], my_funcs={"one": one}).eval()
 ~~~
+
+## Improve speed by using native eval() with validated code
+Evalidate is very fast, but it's still takes CPU cycles... If you want to achieve maximal possible speed, you can use python native [eval](https://docs.python.org/3/library/functions.html#eval) with this kind of code:
+
+~~~
+from evalidate import Expr
+
+d = dict(a=1, b=2)
+expr = Expr('a+b')
+eval(expr.code, None, d) # <-- native python eval, will run at eval() speed
+~~~
+
+This is as secure as expr.eval(), because `expr.code` is already validated to be secure.
+
+Difference is very little: execution of `expr.code` can throw any exception, while `expr.eval()` can throw only ExecutionException. Also, if you want to export your functions to eval, you should do this manually. 
 
 ## Limitations
 

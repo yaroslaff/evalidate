@@ -60,7 +60,7 @@ def evalidate_raw_eval():
     counter = 0
 
     for p in products:
-        if eval(e.code, p):
+        if eval(e.code, None, p):
             counter+=1
     assert(counter == accurate_counter)
 

@@ -104,7 +104,7 @@ Difference is very little: execution of `expr.code` can throw any exception, whi
 
 ## Limitations
 
-evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.parse) and returns [AST node](https://docs.python.org/3/library/ast.html#node-classes).
+evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.parse) to get [AST node](https://docs.python.org/3/library/ast.html#node-classes) to validate it.
 
 >Warning
 >

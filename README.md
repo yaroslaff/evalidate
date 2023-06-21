@@ -55,11 +55,9 @@ Evalidate throws exceptions `CompilationException`, `ValidationException`, `Exec
 inherit from base exception class `EvalException`.
 
 ## Configure validation
-Evalidate is very flexible, depending on parameters, same code can either pass validation or raise exception.
+Evalidate is very flexible, depending on security model, same code can either pass validation or raise exception.
 
-
-### EvalModel - using custom security model
-EvalModel is security model for eval - list of allowed AST nodes, function calls, attributes and imported functions. There is built-in model `base_eval_model` with basic operations allowed (which are safe from authors point of view).
+EvalModel is security model class for eval - lists of allowed AST nodes, function calls, attributes and dict of imported functions. There is built-in model `base_eval_model` with basic operations allowed (which are safe from authors point of view).
 
 You can create custom empty model (and extend it later):
 my_model = evalidate.EvalModel()

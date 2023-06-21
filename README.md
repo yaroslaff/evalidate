@@ -64,7 +64,7 @@ You can create custom empty model (and extend it later):
 my_model = evalidate.EvalModel()
 ~~~
 
-(nothing is allowed by default, even `1+2` will not be considered as safe code)
+(nothing is allowed by default, even `1+2` will not be considered safe)
 
 or you may start from `base_eval_mode` and extend it:
 ~~~python
@@ -87,7 +87,7 @@ Expr('int(36.6)', model=my_model).eval()
 
 Or, to call attributes:
 ~~~python
-m = evalidate.base_eval_model.clone()
+m = base_eval_model.clone()
 m.nodes.extend(['Call', 'Attribute'])
 m.attributes.append('startswith')
 

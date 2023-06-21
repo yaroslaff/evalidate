@@ -91,7 +91,6 @@ m = base_eval_model.clone()
 m.nodes.extend(['Call', 'Attribute'])
 m.attributes.append('startswith')
 
-
 src = '"abcdef".startswith("abc")'
 r = evalidate.Expr(src, model=m).eval()
 ~~~

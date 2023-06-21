@@ -1,4 +1,4 @@
-from evalidate import Expr, EvalException, ValidationException
+from evalidate import Expr, EvalException, ValidationException, base_eval_model, EvalModel
 import pytest
 
 class TestExpr():
@@ -9,15 +9,21 @@ class TestExpr():
     def test_mult(self):
         with pytest.raises(ValidationException):
             r = Expr('42 * 42').eval()
-        
-        r = Expr('42 * 42', nodes=['Mult']).eval()
+
+        mult_model = base_eval_model.clone()
+        mult_model.nodes.append('Mult')
+
+        r = Expr('42 * 42', mult_model).eval()
         assert r == 1764 
 
     def test_blank(self):
         with pytest.raises(ValidationException):
-            r = Expr('1 + 2', blank=True).eval()
+            model = EvalModel(nodes=[])
+            r = Expr('1 + 2', model=model).eval()
 
-        r = Expr('1 + 2', blank=True, nodes=['Expression', 'BinOp', 'Constant', 'Add']).eval()
+        model = EvalModel(nodes=['Expression', 'BinOp', 'Constant', 'Add'])
+            
+        r = Expr('1 + 2', model=model).eval()
         assert r == 3
 
     def test_cleanup(self):
@@ -34,7 +40,11 @@ class TestExpr():
         with pytest.raises(ValidationException):
             r = Expr('int(x)').eval({'x': 1.3})
 
-        r = Expr('int(x)', nodes=['Call'], funcs=['int']).eval({ "x": 1.3 })
+        model = base_eval_model.clone()
+        model.nodes.append('Call')
+        model.allowed_functions.append('int')
+
+        r = Expr('int(x)', model=model).eval({ "x": 1.3 })
         assert r == 1
     
     def test_attributes(self):
@@ -64,8 +74,12 @@ class TestExpr():
 
         with pytest.raises(ValidationException):
             r = Expr('movie.year - person.birth').eval({"person": person, "movie": movie1})
-        
-        e = Expr('movie.year - person.birth', nodes=['Attribute'], attrs=['year', 'birth'])
+
+
+        m = base_eval_model.clone()
+        m.nodes.append('Attribute')
+        m.attributes.extend(['year', 'birth'])
+        e = Expr('movie.year - person.birth', model=m)
 
         age = e.eval({"person":person, "movie": movie1})
         assert age == 24
@@ -102,8 +116,12 @@ class TestExpr():
         def double(x):
             return x * 2
 
-        ctx = {'a': 123.456}
-        e = Expr('int(a) + double(a)', nodes=['Call'], funcs=['double', 'int'], my_funcs={'double': double})
+        ctx = {'a': 123.45}
+
+        m = base_eval_model.clone()
+        m.nodes.append('Call')
+        m.allowed_functions.append('int')
+        m.imported_functions['double'] = double
+        e = Expr('int(a) + double(a)', model=m)
         r = e.eval(ctx)
-        print(r)
-        print(ctx)
+        assert r == 369.9

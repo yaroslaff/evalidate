@@ -1,6 +1,9 @@
 ﻿# Evalidate
 Evalidate is simple python module for safe and very fast eval()'uating user-supplied (possible malicious) python expressions.
 
+## Upgrade warning
+Version 2.0 is backward incompatible with older versions. safeeval and evalidate methods are removed, and EvalMode class is introduced.
+
 ## Purpose
 Originally it's developed for filtering complex data structures e.g. 
 
@@ -54,27 +57,43 @@ inherit from base exception class `EvalException`.
 ## Configure validation
 Evalidate is very flexible, depending on parameters, same code can either pass validation or raise exception.
 
-### Allowing other nodes (operations)
 
-Evalidate has built-in set of python operations, which are considered 'safe' (from author point of view). 
-Code is considered valid only if all of it's operations are in this list. You can override this list by adding argument `nodes` like:
-```python
-Expr('2*2', nodes=['Mult']).eval()
-```
+### EvalModel - using custom security model
+EvalModel is security model for eval - list of allowed AST nodes, function calls, attributes and imported functions. There is built-in model `base_eval_model` with basic operations allowed (which are safe from authors point of view).
 
-If you want to start from blank whitelist (discard built-in whitelist), use `Expr(expression, blank=True, nodes=[...])` and then add each node manually (only what you really need) 
+You can create custom empty model (and extend it later):
+my_model = evalidate.EvalModel()
+(nothing is allowed by default, even `1+2` will not be considered as safe code)
 
-### Allowing function calls
-Evalidate does not allow any function calls by default.
+or you may start from `base_eval_mode` and extend it:
+~~~python
+from evalidate import Expr, base_eval_model
 
-To enable `int()` function, need to allow 'Call' node and add this function to list of allowed function:
-```python
-Expr('int(36.6)', nodes=['Call'], funcs=['int']).eval()
-```
-If you want to call str methods:
-```python
-Expr('name.startswith("John")', nodes=['Attribute', 'Call'], attrs=['startswith']).eval(dict(name='John Doe'))
-```
+my_model = base_eval_model.clone()
+my_model.nodes.append('Mult')
+
+Expr('2*2', model=my_model).eval()
+~~~
+
+To enable `int()` function, need to allow `'Call'` node and add this function to list of allowed function:
+
+~~~python
+my_model.nodes.append('Call')
+my_model.allowed_functions.append('int')
+
+Expr('int(36.6)', model=my_model).eval()
+~~~
+
+Or, to call attributes:
+~~~python
+m = evalidate.base_eval_model.clone()
+m.nodes.extend(['Call', 'Attribute'])
+m.attributes.append('startswith')
+
+
+src = '"abcdef".startswith("abc")'
+r = evalidate.Expr(src, model=m).eval()
+~~~
 
 But even with this settings, exploiting it with expression like `__builtins__["eval"](1)` will fail (good!).
 
@@ -84,7 +103,9 @@ But even with this settings, exploiting it with expression like `__builtins__["e
 def one():
   return 1
 
-Expr('one()', nodes=['Call'], my_funcs={"one": one}).eval()
+m = base_eval_model.clone()
+m.nodes.append('Call')
+Expr('one()', model=m).eval()
 ~~~
 
 ## Improve speed by using native eval() with validated code

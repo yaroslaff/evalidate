@@ -60,7 +60,10 @@ Evalidate is very flexible, depending on security model, same code can either pa
 EvalModel is security model class for eval - lists of allowed AST nodes, function calls, attributes and dict of imported functions. There is built-in model `base_eval_model` with basic operations allowed (which are safe from authors point of view).
 
 You can create custom empty model (and extend it later):
+~~~python
 my_model = evalidate.EvalModel()
+~~~
+
 (nothing is allowed by default, even `1+2` will not be considered as safe code)
 
 or you may start from `base_eval_mode` and extend it:

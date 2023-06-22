@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
 
 class EvalException(Exception):
@@ -34,10 +34,10 @@ class ExecutionException(EvalException):
 @dataclasses.dataclass
 class EvalModel:
     """ eval security model """
-    nodes: list[str]
-    allowed_functions: list[str] = dataclasses.field(default_factory=list)
-    imported_functions: dict[str] = dataclasses.field(default_factory=dict)
-    attributes: list[str] = dataclasses.field(default_factory=list)
+    nodes: list
+    allowed_functions: list = dataclasses.field(default_factory=list)
+    imported_functions: dict = dataclasses.field(default_factory=dict)
+    attributes: list = dataclasses.field(default_factory=list)
 
     def clone(self):
         return EvalModel(**dataclasses.asdict(self))

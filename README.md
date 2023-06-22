@@ -2,7 +2,9 @@
 Evalidate is simple python module for safe and very fast eval()'uating user-supplied (possible malicious) python expressions.
 
 ## Upgrade warning
-Version 2.0 is backward incompatible with older versions. safeeval and evalidate methods are removed, and EvalMode class is introduced.
+Version 2.0 is backward incompatible with older versions. `safeeval()` and `evalidate()` methods are removed, and EvalMode class is introduced.
+
+See [upgrade example in ticket](https://github.com/yaroslaff/evalidate/issues/5) or use older (any before 2.0.0, e.g. [v1.1.0](https://pypi.org/project/evalidate/1.1.0/)) if you have old code and do not want to upgrade. But upgrading is easy, so please consider this option.
 
 ## Purpose
 Originally it's developed for filtering complex data structures e.g. 

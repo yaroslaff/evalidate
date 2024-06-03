@@ -1,0 +1,32 @@
+[build-system]
+# requires = ["setuptools >= 40.6.0", "wheel"]
+requires = ["hatchling", "wheel"]
+
+# build-backend = "setuptools.build_meta"
+build-backend = "hatchling.build"
+
+[project]
+name="evalidate"
+dynamic = [ "version" ]
+
+dependencies = []
+authors = [
+  { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
+]
+description = "Validation and secure evaluation of untrusted python expressions"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/yaroslaff/evalidate"
+Issues = "https://github.com/yaroslaff/evalidate/issues"
+
+
+
+[tool.hatch.version]
+path = 'evalidate/__init__.py'

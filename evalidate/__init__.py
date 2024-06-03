@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.0.2'
+__version__ = '2.0.3'
 
 
 class EvalException(Exception):
@@ -34,7 +34,7 @@ class ExecutionException(EvalException):
 @dataclasses.dataclass
 class EvalModel:
     """ eval security model """
-    nodes: list
+    nodes: list = dataclasses.field(default_factory=list)
     allowed_functions: list = dataclasses.field(default_factory=list)
     imported_functions: dict = dataclasses.field(default_factory=dict)
     attributes: list = dataclasses.field(default_factory=list)
@@ -109,6 +109,7 @@ mult_eval_model.nodes.append('Mul')
 
 class Expr():
     def __init__(self, expr, model=None, filename=None):
+
         self.expr = expr
         self.model = model or base_eval_model
 

@@ -107,6 +107,7 @@ def one():
 
 m = base_eval_model.clone()
 m.nodes.append('Call')
+m.imported_functions["one"] = one
 Expr('one()', model=m).eval()
 ~~~
 

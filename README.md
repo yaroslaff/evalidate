@@ -11,7 +11,7 @@ Originally it's developed for filtering complex data structures e.g.
 
 Find cheap smartphones available for sale:
 ```python
-category="smartphones" and price<300 and stock>0
+category=="smartphones" and price<300 and stock>0
 ```
 
 But also, it can be used for other expressions, e.g. arithmetical, like

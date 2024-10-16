@@ -19,7 +19,7 @@ But also, it can be used for other expressions, e.g. arithmetical, like
 a+b-100
 ```
 
-Evalidate is fastest among all (known to me) secure eval pythong modules.
+Evalidate is fastest among all (known to me) secure eval python modules.
 
 ## Install
 

@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.0.3'
+__version__ = '2.0.4'
 
 
 class EvalException(Exception):
@@ -124,9 +124,17 @@ class Expr():
         self.code = compile(self.node, filename or '<usercode>', 'eval')
 
     def eval(self, ctx=None):
-        
+
+        if ctx:
+            global_ctx = {
+                **self.model.imported_functions,
+                **ctx
+            }
+        else:
+            global_ctx = self.model.imported_functions    
+    
         try:
-            result = eval(self.code, self.model.imported_functions, ctx)
+            result = eval(self.code, global_ctx)
         except Exception as e:
             raise ExecutionException(e)
 

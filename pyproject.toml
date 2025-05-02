@@ -1,6 +1,6 @@
 [build-system]
 # requires = ["setuptools >= 40.6.0", "wheel"]
-requires = ["hatchling", "wheel"]
+requires = ["hatchling>=1.27.0", "wheel"]
 
 # build-backend = "setuptools.build_meta"
 build-backend = "hatchling.build"

@@ -4,3 +4,4 @@ evalidate.egg-info/
 *pyc
 build/
 dist/
+.local/

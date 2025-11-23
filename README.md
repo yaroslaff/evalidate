@@ -157,11 +157,11 @@ jg 'category=="phones"' products.json
 `jg` implements only a small subset of jq's functionality, but it is twice as fast and much simpler to use.
 
 **Options**
-`-b` - benchmark. Will not print output JSON. Measures filtering time.
-`-v` - verbose mode.
-`-l` - reads input as JSONL (one JSON object per line) instead of a JSON array
-`-k` - keypath to list e.g. "shop::products::onstock" if the input data is a nested dictionary
-`-f` - custom output format for non-JSON output e.g. '{sku} {price} ({stock}) {title!r}'
+- `-b` - benchmark. Will not print output JSON. Measures filtering time.
+- `-v` - verbose mode.
+- `-l` - reads input as JSONL (one JSON object per line) instead of a JSON array
+- `-k` - keypath to list e.g. "shop::products::onstock" if the input data is a nested dictionary
+- `-f` - custom output format for non-JSON output e.g. '{sku} {price} ({stock}) {title!r}'
 
 ## Advanced topics
 

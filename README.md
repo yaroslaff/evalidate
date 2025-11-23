@@ -1,10 +1,10 @@
 ﻿# Evalidate
 Evalidate is simple python module for safe and very fast eval()'uating user-supplied (possible malicious) python expressions.
 
-## Upgrade warning
-Version 2.0 is backward incompatible with older versions. `safeeval()` and `evalidate()` methods are removed, and EvalMode class is introduced.
-
-See [upgrade example in ticket](https://github.com/yaroslaff/evalidate/issues/5) or use older (any before 2.0.0, e.g. [v1.1.0](https://pypi.org/project/evalidate/1.1.0/)) if you have old code and do not want to upgrade. But upgrading is easy, so please consider this option.
+Evalidate comes with a very convenient and fast CLI tool, `jg`, for filtering (grep‑ing) items in JSON lists:
+```shell
+jg 'attributes["storage"] == "512GB" and price<300 and rating>4'  products.json
+```
 
 ## Purpose
 Originally it's developed for filtering complex data structures e.g. 
@@ -111,7 +111,61 @@ m.imported_functions["one"] = one
 Expr('one()', model=m).eval()
 ~~~
 
-## Improve speed by using native eval() with validated code
+
+## CLI tools
+### genfakeproducts
+`genfakeproducts` generates a JSON list of N fake products for testing. For example:
+
+```shell
+# generates 1 million fake JSON records for testing (takes about 1 minute on my computer)
+genfakeproducts -n 1000000 -o products.json
+```
+By default, N is 10000 and the output file is products.json (takes 1 second).
+
+Example record:
+```json
+  {
+    "id": "d5af9f93-c164-4872-a535-4fb56cf62e6e",
+    "sku": "SKU-D5AF9F93",
+    "title": "Google ET-3843 Pro",
+    "brand": "Google",
+    "category": "phones",
+    "description": "Foot trial city avoid he wish real college investment tend include draw window either over somebody history detail risk support glass. Google phones designed for modern users.",
+    "price": 340.94,
+    "currency": "USD",
+    "stock": 24,
+    "rating": 4.23,
+    "reviews_count": 222,
+    "attributes": {
+      "storage": "512GB",
+      "color": "red"
+    },
+    "tags": [
+      "limited",
+      "new"
+    ]
+  }
+```
+
+### jg (grep)
+`jg` is a very fast JSON grep CLI tool. It accepts a Python expression and a filename, or reads from stdin:
+
+```shell
+jg 'category=="phones"' products.json
+```
+
+`jg` implements only a small subset of jq's functionality, but it is twice as fast and much simpler to use.
+
+**Options**
+`-b` - benchmark. Will not print output JSON. Measures filtering time.
+`-v` - verbose mode.
+`-l` - reads input as JSONL (one JSON object per line) instead of a JSON array
+`-k` - keypath to list e.g. "shop::products::onstock" if the input data is a nested dictionary
+`-f` - custom output format for non-JSON output e.g. '{sku} {price} ({stock}) {title!r}'
+
+## Advanced topics
+
+### Improve speed by using native eval() with validated code
 Evalidate is very fast, but it's still takes CPU cycles... If you want to achieve maximal possible speed, you can use python native [eval](https://docs.python.org/3/library/functions.html#eval) with this kind of code:
 
 ~~~python
@@ -126,7 +180,29 @@ This is as secure as expr.eval(), because `expr.code` is already validated to be
 
 Difference is very little: execution of `expr.code` can throw any exception, while `expr.eval()` can throw only ExecutionException. Also, if you want to export your functions to eval, you should do this manually. 
 
-## Limitations
+### Custom mapping classes
+
+You can use custom mapping classes instead of `dict`. As with native python eval, custom mapping class may be used only as locals context.
+
+Example:
+
+~~~python
+from collections import UserDict
+from evalidate import Expr
+
+class LazyDict(UserDict):
+    def __missing__(self, key):
+        return 42
+
+ctx = LazyDict(a=100)
+expr = Expr("a+b")
+
+res = expr.eval(ctx_locals=ctx)
+print(res) # 142
+~~~
+
+
+### Limitations
 
 evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.parse) to get [AST node](https://docs.python.org/3/library/ast.html#node-classes) to validate it.
 

@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.0.5'
+__version__ = '2.1.0'
 
 
 class EvalException(Exception):
@@ -123,21 +123,29 @@ class Expr():
 
         self.code = compile(self.node, filename or '<usercode>', 'eval')
 
-    def eval(self, ctx=None):
+    def eval(self, ctx_globals=None, ctx_locals=None):
 
-        if ctx:
-            global_ctx = {
+        #
+        # PEP709 (python 3.12 and above): list comprehensions works even with data from locals
+        # before 3.12, list comprehensions works only with data in globals 
+        #
+        
+        ctx_locals = dict() if ctx_locals is None else ctx_locals
+        ctx_globals = dict() if ctx_globals is None else ctx_globals
+
+        if ctx_globals:
+            ctx_globals = {
                 **self.model.imported_functions,
-                **ctx
+                **ctx_globals
             }
         else:
-            global_ctx = self.model.imported_functions    
+            ctx_globals = self.model.imported_functions    
     
         try:
-            result = eval(self.code, global_ctx)
+            result = eval(self.code, ctx_globals, ctx_locals)
         except Exception as e:
             raise ExecutionException(e)
-
+        
         return result
     
     def __str__(self):

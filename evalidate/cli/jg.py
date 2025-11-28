@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import requests
 from evalidate import Expr, ValidationException, CompilationException, ExecutionException
 import json
 import sys

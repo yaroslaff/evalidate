@@ -10,7 +10,7 @@ name="evalidate"
 dynamic = [ "version" ]
 keywords = ["python", "security", "json", "sandbox", "filter", "evaluation", "expression", "secure", "jq", "jg", "validate", "safe", "grep", "eval", "evaluate", "jg"]
 
-dependencies = ['faker']
+dependencies = ['faker', 'requests']
 authors = [
   { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
 ]

@@ -11,9 +11,14 @@ Example:
 
 import argparse, json, random, uuid
 from datetime import datetime, UTC
-from faker import Faker
+try:
+    from faker import Faker
+except ImportError:
+    print("Faker library is required. You can reinstall evalidate with the 'generate' extra: pipx install 'evalidate[generate]'")
+    exit(1)
 
 fake = Faker()
+
 
 BRANDS = {
     "phones":  ["Samsung", "Apple", "Xiaomi", "OnePlus", "Google"],

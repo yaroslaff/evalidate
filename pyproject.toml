@@ -10,7 +10,7 @@ name="evalidate"
 dynamic = [ "version" ]
 keywords = ["python", "security", "json", "sandbox", "filter", "evaluation", "expression", "secure", "jq", "jg", "validate", "safe", "grep", "eval", "evaluate", "jg"]
 
-dependencies = ['faker']
+dependencies = []
 authors = [
   { name="Yaroslav Polyakov", email="yaroslaff@gmail.com" },
 ]
@@ -22,6 +22,10 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+[project.optional-dependencies]
+generate = ["faker"]
+
 
 [project.urls]
 Homepage = "https://github.com/yaroslaff/evalidate"

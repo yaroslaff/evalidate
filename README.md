@@ -147,6 +147,8 @@ Example record:
   }
 ```
 
+To use genfakeproducts, you need to install evalidate with "generate" extra: `pip3 install evalidate[generate]`
+
 ### jg (grep)
 `jg` is a very fast JSON grep CLI tool. It accepts a Python expression and a filename, or reads from stdin:
 

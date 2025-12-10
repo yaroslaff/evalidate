@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.1.1'
+__version__ = '2.1.2'
 
 
 class EvalException(Exception):

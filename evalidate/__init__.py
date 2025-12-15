@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.1.2'
+__version__ = '2.1.3'
 
 
 class EvalException(Exception):
@@ -100,7 +100,8 @@ base_eval_model = EvalModel(
                 "In", "NotIn",  # "aaa" in i['list']
                 "IfExp",  # for if expressions, like: expr1 if expr2 else expr3
                 "NameConstant",  # for True and False constants
-                "Div", "Mod"
+                "Div", "Mod",
+                "Is", "IsNot"
             ],
 )
 

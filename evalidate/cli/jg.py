@@ -86,7 +86,7 @@ def main():
             if r:
                 out.append(p)
                 c+=1
-        except KeyError as e:
+        except (KeyError, NameError) as e:
             pass
             # print("Runtime exception:", e)
 

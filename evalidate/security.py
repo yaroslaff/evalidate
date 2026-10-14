@@ -1,5 +1,9 @@
 from evalidate import ValidationException, Expr, EvalModel, base_eval_model
 
+SECRET = '>>> this is a secret <<<'
+def one(): return 1
+
+
 simple_attacks = [
 """
 os.system("clear")
@@ -10,6 +14,13 @@ __import__('os').system('clear')
 """
 __builtins__['eval']("print(1)")
 """,
+
+# information disclosure attacks
+'"{SECRET}".format_map(globals())',
+'"{one.__globals__[SECRET]}".format_map(locals())',
+'"{one.__globals__[SECRET]}".format_map(globals())',
+'"{one.__globals__[SECRET]}".format_map({"one": one})',
+'"{0.__globals__[SECRET]}".format(one)'
 ]
 
 boom = """

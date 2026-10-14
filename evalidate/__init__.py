@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.1.4'
+__version__ = '2.1.5'
 
 
 class EvalException(Exception):
@@ -41,6 +41,10 @@ class EvalModel:
 
     def clone(self):
         return EvalModel(**dataclasses.asdict(self))
+
+    def test_security(self, attacks=None, verbose=False):
+        from .security import test_security
+        return test_security(attacks=attacks, model=self, verbose=verbose)
 
 
 class SafeAST(ast.NodeVisitor):

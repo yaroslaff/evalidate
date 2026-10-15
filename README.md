@@ -28,7 +28,7 @@ Evalidate is the fastest secure Python `eval()` alternative I know of.
 
 ```shell
 pip3 install evalidate
-```python
+```
 
 ## TL;DR: Just give me safe `eval()`!
 

@@ -4,7 +4,7 @@ Evalidate is a simple Python library for safely evaluating untrusted, user-suppl
 
 Evalidate also comes with a convenient, high-performance CLI tool, `jg`, for filtering JSON lists using Python expressions:
 
-```
+```shell
 jg 'attributes["storage"] == "512GB" and price<300 and rating>4' products.json
 ```
 
@@ -12,13 +12,13 @@ jg 'attributes["storage"] == "512GB" and price<300 and rating>4' products.json
 
 Evalidate was originally developed to filter complex data structures. For example, to find inexpensive smartphones that are available for sale:
 
-```
+```python
 category=="smartphones" and price<300 and stock>0
 ```
 
 However, it can also evaluate other types of expressions, including arithmetic expressions:
 
-```
+```python
 a+b-100
 ```
 
@@ -26,13 +26,13 @@ Evalidate is the fastest secure Python `eval()` alternative I know of.
 
 ## Installation
 
-```
+```shell
 pip3 install evalidate
-```
+```python
 
 ## TL;DR: Just give me safe `eval()`!
 
-```
+```python
 from evalidate import base_eval_model, EvalException
 
 src = 'a + 10 > b'
@@ -61,7 +61,7 @@ ERR: Operation type Call is not allowed
 
 Here's a more practical example: finding inexpensive smartphones that meet specific requirements.
 
-```
+```python
 from evalidate import base_eval_model, EvalException
 
 mobiles = [
@@ -116,7 +116,7 @@ Evalidate is highly configurable. Whether an expression passes validation or rai
 
 You can create an empty model and extend it as needed:
 
-```
+```python
 my_model = evalidate.EvalModel()
 ```
 
@@ -124,7 +124,7 @@ By default, an empty model allows no operations. Even `1+2` is rejected.
 
 Alternatively, you can clone `base_eval_model` and extend it:
 
-```
+```python
 from evalidate import Expr, base_eval_model
 
 my_model = base_eval_model.clone()
@@ -136,7 +136,7 @@ expr.eval()
 
 To enable calls to `int()`, allow the `Call` node and add `int` to the list of permitted functions:
 
-```
+```python
 my_model.nodes.append('Call')
 my_model.allowed_functions.append('int')
 
@@ -145,7 +145,7 @@ my_model.expr('int(36.6)').eval()
 
 To enable attribute access and method calls, configure the model as follows:
 
-```
+```python
 m = base_eval_model.clone()
 m.nodes.extend(['Call', 'Attribute'])
 m.attributes.append('startswith')
@@ -160,7 +160,7 @@ Even with this configuration, an expression such as `__builtins__["eval"](1)` is
 
 You can explicitly expose your own functions to evaluated expressions:
 
-```
+```python
 from evalidate import base_eval_model
 
 def one():
@@ -178,7 +178,7 @@ Evalidate includes a built-in collection of potential attacks and a `test_securi
 
 Passing `test_security()` is necessary, but not sufficient, to establish that a model is secure. Even if `test_security()` returns `True`, the model may still be vulnerable to attacks that the test suite does not cover.
 
-```
+```python
 from evalidate import base_eval_model
 
 m = base_eval_model.clone()
@@ -198,7 +198,7 @@ m.expr(src).eval()
 
 For example, to generate one million records (this takes about one minute on my computer):
 
-```
+```shell
 genfakeproducts -n 1000000 -o products.json
 ```
 
@@ -206,7 +206,7 @@ By default, it generates 10,000 records and writes them to `products.json`. This
 
 Example record:
 
-```
+```json
 {
   "id": "d5af9f93-c164-4872-a535-4fb56cf62e6e",
   "sku": "SKU-D5AF9F93",
@@ -232,7 +232,7 @@ Example record:
 
 To use `genfakeproducts`, install Evalidate with the `generate` extra:
 
-```
+```shell
 pip3 install evalidate[generate]
 ```
 

@@ -5,3 +5,4 @@ evalidate.egg-info/
 build/
 dist/
 .local/
+products.json

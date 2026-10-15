@@ -262,7 +262,7 @@ jg 'category=="phones"' products.json
 
 Evalidate is fast, but its evaluation machinery still introduces some overhead. If you need maximum performance, you can use Python's native [`eval()`](https://docs.python.org/3/library/functions.html#eval) directly on the validated code:
 
-```
+```python
 from evalidate import base_eval_model
 
 m = base_eval_model.clone()
@@ -282,7 +282,7 @@ You can use custom mapping classes instead of `dict`. As with native Python `eva
 
 Example:
 
-```
+```python
 from collections import UserDict
 from evalidate import base_eval_model
 

@@ -1,354 +1,368 @@
 ﻿# Evalidate
-Evalidate is simple python module for safe and very fast eval()'uating user-supplied (possible malicious) python expressions.
 
-Evalidate comes with a very convenient and fast CLI tool, `jg`, for filtering (grep‑ing) items in JSON lists:
-```shell
-jg 'attributes["storage"] == "512GB" and price<300 and rating>4'  products.json
+Evalidate is a simple Python library for safely evaluating untrusted, user-supplied Python expressions. It validates expressions before execution and rejects potentially malicious code.
+
+Evalidate also comes with a convenient, high-performance CLI tool, `jg`, for filtering JSON lists using Python expressions:
+
+```
+jg 'attributes["storage"] == "512GB" and price<300 and rating>4' products.json
 ```
 
 ## Purpose
-Originally it's developed for filtering complex data structures e.g. 
 
-Find cheap smartphones available for sale:
-```python
+Evalidate was originally developed to filter complex data structures. For example, to find inexpensive smartphones that are available for sale:
+
+```
 category=="smartphones" and price<300 and stock>0
 ```
 
-But also, it can be used for other expressions, e.g. arithmetical, like
-```python
+However, it can also evaluate other types of expressions, including arithmetic expressions:
+
+```
 a+b-100
 ```
 
-Evalidate is fastest among all (known to me) secure eval python modules.
+Evalidate is the fastest secure Python `eval()` alternative I know of.
 
-## Install
+## Installation
 
-```shell
+```
 pip3 install evalidate
 ```
-    
-## Security
 
-Built-in python features such as compile() or eval() are quite powerful to run any kind of user-supplied code, but could be insecure if used code is malicious like `os.system("rm -rf /")`. Evalidate works on whitelist principle, allowing code only if it consist only of safe operations (based on authors views about what is safe and what is not, your mileage may vary - but you can supply your list of safe operations)
+## TL;DR: Just give me safe `eval()`!
 
+```
+from evalidate import base_eval_model, EvalException
 
-## TL;DR. Just give me safe eval!
-```python       
-from evalidate import Expr, EvalException
-
-src = 'a + 40 > b'
+src = 'a + 10 > b'
 # src = "__import__('os').system('clear')"
 
+model = base_eval_model.clone()
+expr = model.expr(src)
+
 try:
-    print(Expr(src).eval({'a':10, 'b':42}))
+    print(expr.eval({'a':10, 'b':142}))
 except EvalException as e:
     print(e)
 ```
 
-Gives output: `True`
+Output:
 
-In case of dangerous code (uncomment second src line to test):
-  
-output will be: `ERR: Operation type Call is not allowed`
+```
+True
+```
 
+If you try to execute the potentially dangerous expression (uncomment the second `src` line), the output will be:
+
+```
+ERR: Operation type Call is not allowed
+```
+
+Here's a more practical example: finding inexpensive smartphones that meet specific requirements.
+
+```
+from evalidate import base_eval_model, EvalException
+
+mobiles = [
+    {'brand': 'Apple',    'model': 'iPhone 15',              'price': 799,  'RAM': 6,  'storage': 128},
+    {'brand': 'Apple',    'model': 'iPhone 14',              'price': 799,  'RAM': 6,  'storage': 128},
+    {'brand': 'Samsung',  'model': 'Galaxy S23 Ultra',       'price': 1199, 'RAM': 8,  'storage': 256},
+    {'brand': 'Samsung',  'model': 'Galaxy A54',             'price': 449,  'RAM': 8,  'storage': 128},
+    {'brand': 'Samsung',  'model': 'Galaxy Z Flip 5',        'price': 999,  'RAM': 8,  'storage': 256},
+    {'brand': 'Google',   'model': 'Pixel 8',                'price': 699,  'RAM': 8,  'storage': 128},
+    {'brand': 'Google',   'model': 'Pixel 7a',               'price': 499,  'RAM': 8,  'storage': 128},
+    {'brand': 'OnePlus',  'model': 'OnePlus 11',             'price': 699,  'RAM': 16, 'storage': 256},
+    # intentionally incomplete:
+    {'brand': 'Xiaomi',   'model': 'Xiaomi 13 Pro',          'price': 999,  'RAM': 12, },
+    {'brand': 'Xiaomi',   'model': 'Redmi Note 12 Pro',      'price': 299,  'RAM': 8,  'storage': 256},
+]
+
+src = 'storage >= 256 and RAM >= 8 and price <= 1000'
+
+model = base_eval_model.clone()
+try:
+    expr = model.expr(src)
+except EvalException as e:
+    print(f"Error in expression ({src}): {e}")
+    exit(1)
+
+for mobile in mobiles:
+    try:
+        if expr.eval(mobile):
+            print(f"{mobile['brand']} {mobile['model']} {mobile['storage']}/{mobile['RAM']} ({mobile['price']})")
+
+    except EvalException as e:
+        print(f"ERROR: evaluating expression for {mobile['brand']} {mobile['model']}: {e}")
+```
+
+## Security
+
+Python's built-in functions, such as `compile()` and `eval()`, are powerful enough to execute arbitrary user-supplied code. Using them with untrusted input can therefore be dangerous. For example, an expression might attempt to execute `os.system("rm -rf /")`.
+
+Evalidate uses a whitelist-based approach: an expression is accepted only if it consists of operations explicitly permitted by the configured security model. What counts as safe depends on the model's configuration and the author's security assumptions. Your requirements may differ, so you can define your own list of allowed operations.
+
+Although the built-in models are designed to be secure, Evalidate allows you to extend them. Do so carefully: even an attribute that appears harmless, such as `.format`, can introduce vulnerabilities.
 
 ## Exceptions
-Evalidate throws exceptions `CompilationException`, `ValidationException`, `ExecutionException`. All of them
-inherit from base exception class `EvalException`.
 
-## Configure validation
-Evalidate is very flexible, depending on security model, same code can either pass validation or raise exception.
+Evalidate defines three exception classes: `CompilationException`, `ValidationException`, and `ExecutionException`. All three inherit from the base exception class `EvalException`.
 
-EvalModel is security model class for eval - lists of allowed AST nodes, function calls, attributes and dict of imported functions. There is built-in model `base_eval_model` with basic operations allowed (which are safe from authors point of view).
+## Models: Configuring Validation
 
-You can create custom empty model (and extend it later):
-~~~python
+Evalidate is highly configurable. Whether an expression passes validation or raises an exception depends on the security model used.
+
+`EvalModel` defines the security policy for expression evaluation. It specifies the allowed AST nodes, function calls, and attributes, as well as a dictionary of imported functions. Evalidate provides a built-in model, `base_eval_model`, which permits a basic set of operations considered safe by the author.
+
+You can create an empty model and extend it as needed:
+
+```
 my_model = evalidate.EvalModel()
-~~~
+```
 
-(nothing is allowed by default, even `1+2` will not be considered safe)
+By default, an empty model allows no operations. Even `1+2` is rejected.
 
-or you may start from `base_eval_mode` and extend it:
-~~~python
+Alternatively, you can clone `base_eval_model` and extend it:
+
+```
 from evalidate import Expr, base_eval_model
 
 my_model = base_eval_model.clone()
 my_model.nodes.append('Mult')
 
-Expr('2*2', model=my_model).eval()
-~~~
+expr = my_model.expr('2*2')
+expr.eval()
+```
 
-To enable `int()` function, need to allow `'Call'` node and add this function to list of allowed function:
+To enable calls to `int()`, allow the `Call` node and add `int` to the list of permitted functions:
 
-~~~python
+```
 my_model.nodes.append('Call')
 my_model.allowed_functions.append('int')
 
-Expr('int(36.6)', model=my_model).eval()
-~~~
+my_model.expr('int(36.6)').eval()
+```
 
-Or, to call attributes:
-~~~python
+To enable attribute access and method calls, configure the model as follows:
+
+```
 m = base_eval_model.clone()
 m.nodes.extend(['Call', 'Attribute'])
 m.attributes.append('startswith')
 
 src = '"abcdef".startswith("abc")'
 r = evalidate.Expr(src, model=m).eval()
-~~~
+```
 
-But even with this settings, exploiting it with expression like `__builtins__["eval"](1)` will fail (good!).
+Even with this configuration, an expression such as `__builtins__["eval"](1)` is rejected.
 
+### Exporting Functions to Expressions
 
-### Exporting my functions to eval code
-~~~python
+You can explicitly expose your own functions to evaluated expressions:
+
+```
+from evalidate import base_eval_model
+
 def one():
-  return 1
+    return 1
 
 m = base_eval_model.clone()
 m.nodes.append('Call')
 m.imported_functions["one"] = one
-Expr('one()', model=m).eval()
-~~~
+m.expr('one()').eval()
+```
 
+### Testing a Model's Security
 
-## CLI tools
-### genfakeproducts
-`genfakeproducts` generates a JSON list of N fake products for testing. For example:
+Evalidate includes a built-in collection of potential attacks and a `test_security()` method that tests a model against them.
 
-```shell
-# generates 1 million fake JSON records for testing (takes about 1 minute on my computer)
+Passing `test_security()` is necessary, but not sufficient, to establish that a model is secure. Even if `test_security()` returns `True`, the model may still be vulnerable to attacks that the test suite does not cover.
+
+```
+from evalidate import base_eval_model
+
+m = base_eval_model.clone()
+m.nodes.append('Pow')
+
+assert(m.test_security())
+
+src = '10**10**10'
+m.expr(src).eval()
+```
+
+## CLI Tools
+
+### `genfakeproducts`
+
+`genfakeproducts` generates a JSON array containing a specified number of fake product records for testing.
+
+For example, to generate one million records (this takes about one minute on my computer):
+
+```
 genfakeproducts -n 1000000 -o products.json
 ```
-By default, N is 10000 and the output file is products.json (takes 1 second).
+
+By default, it generates 10,000 records and writes them to `products.json`. This takes approximately one second.
 
 Example record:
-```json
-  {
-    "id": "d5af9f93-c164-4872-a535-4fb56cf62e6e",
-    "sku": "SKU-D5AF9F93",
-    "title": "Google ET-3843 Pro",
-    "brand": "Google",
-    "category": "phones",
-    "description": "Foot trial city avoid he wish real college investment tend include draw window either over somebody history detail risk support glass. Google phones designed for modern users.",
-    "price": 340.94,
-    "currency": "USD",
-    "stock": 24,
-    "rating": 4.23,
-    "reviews_count": 222,
-    "attributes": {
-      "storage": "512GB",
-      "color": "red"
-    },
-    "tags": [
-      "limited",
-      "new"
-    ]
-  }
+
+```
+{
+  "id": "d5af9f93-c164-4872-a535-4fb56cf62e6e",
+  "sku": "SKU-D5AF9F93",
+  "title": "Google ET-3843 Pro",
+  "brand": "Google",
+  "category": "phones",
+  "description": "Foot trial city avoid he wish real college investment tend include draw window either over somebody history detail risk support glass. Google phones designed for modern users.",
+  "price": 340.94,
+  "currency": "USD",
+  "stock": 24,
+  "rating": 4.23,
+  "reviews_count": 222,
+  "attributes": {
+    "storage": "512GB",
+    "color": "red"
+  },
+  "tags": [
+    "limited",
+    "new"
+  ]
+}
 ```
 
-To use genfakeproducts, you need to install evalidate with "generate" extra: `pip3 install evalidate[generate]`
+To use `genfakeproducts`, install Evalidate with the `generate` extra:
 
-### jg (grep)
-`jg` is a very fast JSON grep CLI tool. It accepts a Python expression and a filename, or reads from stdin:
+```
+pip3 install evalidate[generate]
+```
 
-```shell
+### `jg` (JSON grep)
+
+`jg` is a high-performance CLI tool for filtering JSON data using Python expressions. It accepts an expression and a filename, or reads input from standard input.
+
+```
 jg 'category=="phones"' products.json
 ```
 
-`jg` implements only a small subset of jq's functionality, but it is twice as fast and much simpler to use.
+`jg` implements only a small subset of `jq`'s functionality, but it is twice as fast and much simpler to use.
 
 **Options**
-- `-b` - benchmark. Will not print output JSON. Measures filtering time.
-- `-v` - verbose mode.
-- `-l` - reads input as JSONL (one JSON object per line) instead of a JSON array
-- `-k` - keypath to list e.g. "shop::products::onstock" if the input data is a nested dictionary
-- `-f` - custom output format for non-JSON output e.g. '{sku} {price} ({stock}) {title!r}'
 
-## Advanced topics
+- `-b` — Benchmark mode. Suppresses JSON output and measures filtering time.
+- `-v` — Verbose mode.
+- `-l` — Read input as JSON Lines (JSONL), with one JSON object per line, instead of a JSON array.
+- `-k` — Specify the key path to the list, such as `"shop::products::onstock"`, when the input is a nested dictionary.
+- `-f` — Specify a custom output format for non-JSON output, e.g. `'{sku} {price} ({stock}) {title!r}'`.
 
-### Improve speed by using native eval() with validated code
-Evalidate is very fast, but it's still takes CPU cycles... If you want to achieve maximal possible speed, you can use python native [eval](https://docs.python.org/3/library/functions.html#eval) with this kind of code:
+## Advanced Topics
 
-~~~python
-from evalidate import Expr
+### Improve Performance by Using Native `eval()` on Validated Code
 
+Evalidate is fast, but its evaluation machinery still introduces some overhead. If you need maximum performance, you can use Python's native [`eval()`](https://docs.python.org/3/library/functions.html#eval) directly on the validated code:
+
+```
+from evalidate import base_eval_model
+
+m = base_eval_model.clone()
 d = dict(a=1, b=2)
-expr = Expr('a+b')
-eval(expr.code, None, d) # <-- native python eval, will run at eval() speed
-~~~
+expr = m.expr('a+b')
+r = eval(expr.code, None, d) # <-- native python eval, will run at eval() speed
+print(r)
+```
 
-This is as secure as expr.eval(), because `expr.code` is already validated to be secure.
+This approach provides the same expression-validation guarantees as `Model.Expr.eval()`, because `expr.code` has already passed validation.
 
-Difference is very little: execution of `expr.code` can throw any exception, while `expr.eval()` can throw only ExecutionException. Also, if you want to export your functions to eval, you should do this manually. 
+The differences are minor but important: executing `expr.code` directly can raise arbitrary exceptions, whereas `expr.eval()` raises only `ExecutionException`. Also, if you want to expose functions to the expression, you must do so manually.
 
-### Custom mapping classes
+### Custom Mapping Classes
 
-You can use custom mapping classes instead of `dict`. As with native python eval, custom mapping class may be used only as locals context.
+You can use custom mapping classes instead of `dict`. As with native Python `eval()`, a custom mapping class can be used only as the local evaluation context.
 
 Example:
 
-~~~python
+```
 from collections import UserDict
-from evalidate import Expr
+from evalidate import base_eval_model
 
 class LazyDict(UserDict):
     def __missing__(self, key):
         return 42
 
 ctx = LazyDict(a=100)
-expr = Expr("a+b")
+
+model = base_eval_model.clone()
+
+expr = model.expr("a+b")
 
 res = expr.eval(ctx_locals=ctx)
 print(res) # 142
-~~~
-
+```
 
 ### Limitations
 
-evalidate uses [ast.parse()](https://docs.python.org/3/library/ast.html#ast.parse) to get [AST node](https://docs.python.org/3/library/ast.html#node-classes) to validate it.
+Evalidate uses [`ast.parse()`](https://docs.python.org/3/library/ast.html#ast.parse) to generate an [abstract syntax tree (AST)](https://docs.python.org/3/library/ast.html#node-classes), which it then validates.
 
->Warning
+> **Warning**
 >
->It is possible to crash the Python interpreter with a sufficiently large/complex string due to stack depth limitations in Python’s AST compiler. 
+> A sufficiently large or deeply nested input string can crash the Python interpreter because of stack-depth limitations in Python's AST compiler.
 
-In my test, works well with 200 nested int(): `int(int(.... int(1)...))` but not with 201. Source code is 1000+ characters. But even if evalidate will get such code, it will just raise `CompilationException`.
+In my tests, expressions containing 200 nested `int()` calls work:
 
+```
+int(int(.... int(1)...))
+```
 
-### evalidate.security.test_security()
-Evalidate is very flexible and it's possible to shoot yourself in foot if you will try hard. `test_security()` checks your configuration (nodes, funcs, attrs) against given list of possible attack code or against built-in list of attacks. `test_security()` returns True if everything is OK (all attacks raised ValidationException) or False if something passed.
+but expressions with 201 nested calls do not. The source code is over 1,000 characters long. Even if Evalidate receives such an expression, it will raise `CompilationException`.
 
-This code will never print (I hope).
-~~~python
-from evalidate.security import test_security
+## Similar Projects and Benchmarks
 
-test_security() or print("default rules are vulnerable!")
-~~~
+### [asteval](https://newville.github.io/asteval/)
 
-But this will fail because nodes/funcs leads to successful validation for attack (suppose you do not want anyone to call `int()`)
-~~~python
-from evalidate.security import test_security
+`asteval` supports more complex code, including function definitions and access to Python's mathematical libraries. However, it has two drawbacks:
 
-attacks = ['int(1)']
+- It is significantly slower than Evalidate, which can evaluate validated code at native `eval()` speed.
+- User-supplied expressions can run for a long time and consume excessive resources.
 
-test_security(attacks, addnodes=['Call'], funcs=['int'], verbose=True)
-~~~
+### [simpleeval](https://github.com/danthedeckie/simpleeval)
 
-It will print:
-~~~
-Testing attack code:
-int(1)
-Problem! Attack passed validation without exception!
-Code:
-int(1)
-~~~
+`simpleeval` is a similar project that also uses an AST-based approach and is optimized for repeatedly evaluating pre-parsed expressions.
 
+However, it evaluates expressions using a higher-level representation based on [`ast.Expr`](https://docs.python.org/3/library/ast.html#ast.Expr), which makes evaluation several times slower. Evalidate instead compiles validated expressions into Python's native `code` objects, allowing execution at native `eval()` speed.
 
-
-
-## Example
-
-### Filtering by user-supplied condition ###
-
-This is code of `examples/products.py`. Expression is validated and compiled once and executed (as byte-code, very fast) many times, so filtering is both fast and secure.
-
-
-~~~python
-#!/usr/bin/env python3
-
-import requests
-from evalidate import Expr, ValidationException, CompilationException, ExecutionException
-import json
-import sys
-
-data = requests.get('https://dummyjson.com/products?limit=100').json()
-
-try:
-    src = sys.argv[1]
-except IndexError:
-    src = 'True'
-
-try:
-    expr = Expr(src)
-except (ValidationException, CompilationException) as e:
-    print(e)
-    sys.exit(1)
-
-c=0
-for p in data['products']:
-    # print(p)
-    try:
-        r = expr.eval(p)
-        if r:
-            print(json.dumps(p, indent=2))
-            c+=1
-    except ExecutionException as e:
-        print("Runtime exception:", e)
-print("# {} products matches".format(c))
-~~~
-
-~~~shell
-# print all 100 products
-./products.py
-
-# Only cheap products, 8 matches
-./products.py 'price<20'
-
-# smartphones (5)
-./products.py 'category=="smartphones"'
-
-# good smartphones
-./products.py 'category=="smartphones" and rating>4.5'
-
-# cheap smartphones
-./products.py 'category=="smartphones" and price<300'
-~~~
-                                       
-
-## Similar projects and benchmark
-
-[asteval](https://newville.github.io/asteval/)
-
-While asteval can compute much more complex code (define functions, use python math libraries) it has drawbacks:
-- asteval is much slower (evalidate can be used at speed of eval() python bytecode)
-- user can provide source code which runs very long time and consumes many resources 
-
-
-[simpleeval](https://github.com/danthedeckie/simpleeval)
-Very similar project, using AST approach too and optimized to re-evaluate pre-parsed expressions. But parsed expressions are stored as more high-level [ast.Expr](https://docs.python.org/3/library/ast.html#ast.Expr) type and this approach is few times slower, while evalidate uses python native `code` type and evaluation itself goes at speed of python eval()
-
-evalidate is good to run same expression against different data.
+Evalidate is particularly well suited to evaluating the same expression against many different data objects.
 
 ## Benchmarking
-We use `benchmark/benchmark.py` in this repository.
-We prepare list of 1 million of products (actually, we take just 100 products sample, but repeat it 10 000 times to get 1 million), and then filter it, finding only specific products on "untrusted user-supplied expression" (`price < 20` in this case)
 
-~~~
+The benchmark script is `benchmark/benchmark.py` in this repository.
+
+The benchmark creates a list of one million products. In practice, it takes a sample of 100 products and repeats it 10,000 times. It then filters the list using an untrusted user-supplied expression to find matching products. The expression in this test is `price < 20`.
+
+```
 Products: 1000000 items
 evalidate_raw_eval(): 0.266s
 evalidate_eval(): 0.326s
 test_simpleeval(): 1.824s
 test_asteval(): 26.106s
-~~~
+```
 
-As you see, evalidate is few times faster then simpleeval and both are much faster then asteval.
+As the results show, Evalidate is several times faster than `simpleeval`, and both are significantly faster than `asteval`.
 
-Maybe my test is not perfectly optimized (I'm not expert with simpleeval/asteval), if you can suggest better filtering sample code (which produces faster result), I will include it. (Benchmark code must assume expression as unknown in advance and untrusted)
+The benchmark may not be optimally implemented; I am not an expert in `simpleeval` or `asteval`. If you can suggest a faster filtering implementation, I will consider including it. Any proposed benchmark code must treat the expression as unknown in advance and potentially untrusted.
 
+## Further Reading: The Risks of `eval()`
 
-## Read about eval() risks
+- [Eval really is dangerous](https://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html)
+- [Breaking Python 3 eval protections](https://netsec.expert/posts/breaking-python3-eval-protections/)
+- [Python eval() function](https://realpython.com/python-eval-function/)
 
-- https://nedbatchelder.com/blog/201206/eval_really_is_dangerous.html
-- https://netsec.expert/posts/breaking-python3-eval-protections/
-- https://realpython.com/python-eval-function/
+**Note:** The Real Python article demonstrates a concise source-validation technique based on `code.co_names`. However, this technique is vulnerable: it accepts the "bomb" from Ned Batchelder's article, which has an empty `co_names` tuple and can crash the interpreter.
 
-Note: realpython article shows example with nice short method of validation source (using `code.co_names`), 
-but it's vulnerable, it passes "bomb" from Ned Batchelder article (bomb has empty `co_names` tuple) and crash interpreter. Evalidate can block this code and similar bombs (unless you will intentionally configure evalidate to pass specific bomb code. Yes, with evalidate it is hard to shoot yourself in the foot, but it is possible if you will try hard).
+Evalidate can reject this code and similar bombs, unless you deliberately configure the model to allow the specific operations required by an attack. Evalidate makes it harder to shoot yourself in the foot, but it is still possible if you try hard enough.
 
-## More info
+## More Information
 
-Want more info? Check source code of module, it's very short and simple, easy to modify
+For more information, see the module's source code. It is short, straightforward, and easy to modify.
 
 ## Contact
 
-Write me: yaroslaff at gmail.com
+Email: yaroslaff at gmail.com

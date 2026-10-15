@@ -46,6 +46,8 @@ class EvalModel:
         from .security import test_security
         return test_security(attacks=attacks, model=self, verbose=verbose)
 
+    def expr(self, expr):
+        return Expr(expr=expr, model=self)
 
 class SafeAST(ast.NodeVisitor):
 

@@ -20,7 +20,10 @@ __builtins__['eval']("print(1)")
 '"{one.__globals__[SECRET]}".format_map(locals())',
 '"{one.__globals__[SECRET]}".format_map(globals())',
 '"{one.__globals__[SECRET]}".format_map({"one": one})',
-'"{0.__globals__[SECRET]}".format(one)'
+'"{0.__globals__[SECRET]}".format(one)',
+
+# resource exhaustion attacks
+'10 ** 10 ** 10'
 ]
 
 boom = """

@@ -310,7 +310,7 @@ Evalidate uses [`ast.parse()`](https://docs.python.org/3/library/ast.html#ast.pa
 
 In my tests, expressions containing 200 nested `int()` calls work:
 
-```
+```python
 int(int(.... int(1)...))
 ```
 

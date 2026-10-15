@@ -2,3 +2,4 @@ Yaroslav Polyakov: main author
 
 Daniel Rech: python3 porting, ideas for IfExp function call filtering
 
+Nagizaaz Shaik: .format() and .format_map() attacks for security_check()

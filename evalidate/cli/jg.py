@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from evalidate import Expr, ValidationException, CompilationException, ExecutionException
+from evalidate import base_eval_model, ValidationException, CompilationException, ExecutionException
 import json
 import sys
 import argparse
@@ -65,8 +65,11 @@ def main():
 
     vprint(f'# loaded {len(data)} records from {args.path}')
 
+
+    model = base_eval_model.clone()
+
     try:    
-        expr = Expr(args.expr)
+        expr = model.expr(args.expr)
     except (ValidationException, CompilationException) as e:
         print(e)
         sys.exit(1)

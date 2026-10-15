@@ -125,7 +125,7 @@ By default, an empty model allows no operations. Even `1+2` is rejected.
 Alternatively, you can clone `base_eval_model` and extend it:
 
 ```python
-from evalidate import Expr, base_eval_model
+from evalidate import base_eval_model
 
 my_model = base_eval_model.clone()
 my_model.nodes.append('Mult')

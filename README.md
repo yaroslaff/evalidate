@@ -151,7 +151,9 @@ m.nodes.extend(['Call', 'Attribute'])
 m.attributes.append('startswith')
 
 src = '"abcdef".startswith("abc")'
-r = evalidate.Expr(src, model=m).eval()
+
+r = m.expr(src).eval()
+print(r)
 ```
 
 Even with this configuration, an expression such as `__builtins__["eval"](1)` is rejected.

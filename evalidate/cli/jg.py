@@ -5,6 +5,7 @@ import json
 import sys
 import argparse
 import time
+import keyword 
 
 def short_repr(data, limit=100):
     try:
@@ -22,7 +23,8 @@ def get_args():
     parser.add_argument('-l', '--jsonl', default=False, action='store_true', help='input is JSONL (not JSON list)')
     parser.add_argument('-k', '--keypath', type=str, help='key path to list separated by ::, e.g.: -k shop::products::onstock')
     parser.add_argument('-f', '--format', type=str, help='format (if not JSON), e.g. -f \'{sku} {price} ({stock}) {title!r}\'')
-    parser.add_argument('expr', help='Python filter expression')
+    parser.add_argument('-F', '--fix', action='store_true', help='check each dict key and rename if it\'s a reserved word (e.g. "from" -> "_from")')
+    parser.add_argument('expr', nargs='?', help='Python filter expression')
     parser.add_argument('path', default=None, help='Path to JSON list (or stdin)', nargs='?')
 
     return parser.parse_args()
@@ -41,6 +43,9 @@ def main():
         args.verbose = True
     out = list()
 
+    if args.expr is None:
+        args.expr = 'True'
+
     vprint(f'# loading data from {args.path or "stdin"}')
 
     if args.path:
@@ -48,11 +53,25 @@ def main():
     else:
         f = sys.stdin
 
+
     with f:
         if args.jsonl:
             data = [json.loads(line) for line in f if line.strip()]
         else:
-            data = json.load(f)
+            try:
+                data = json.load(f)
+            except json.JSONDecodeError as e:
+                if e.msg == 'Extra data':
+                    print(f"Error decoding JSON: {e}", file=sys.stderr)
+                    print("Hint: use --jsonl / -l for JSONL files (one JSON object per line)")
+                    sys.exit(1)
+
+                print(f"Error decoding JSON: {e}", file=sys.stderr)
+                print(e.msg)
+                print(type(e))
+                print(dir(e))
+
+                sys.exit(1)
 
     # follow keypath if needed
     try:
@@ -62,6 +81,15 @@ def main():
     except KeyError as e:
         print(f"No such key: {e}", file=sys.stderr)
         sys.exit(1)
+
+
+    if args.fix:
+        print("# fixing reserved words in dict keys")
+        for d in data:
+            if isinstance(d, dict):
+                for k in list(d.keys()):
+                    if keyword.iskeyword(k):
+                        d[f'_{k}'] = d.pop(k)
 
     vprint(f'# loaded {len(data)} records from {args.path}')
 

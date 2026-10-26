@@ -6,3 +6,5 @@ build/
 dist/
 .local/
 products.json
+uv.lock
+

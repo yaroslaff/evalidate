@@ -6,7 +6,7 @@ import ast
 import dataclasses
 from typing import Callable
 
-__version__ = '2.1.8'
+__version__ = '2.1.9'
 
 
 class EvalException(Exception):
@@ -112,7 +112,9 @@ base_eval_model = EvalModel(
 )
 
 mult_eval_model = base_eval_model.clone()
-mult_eval_model.nodes.append('Mul')
+
+# No RCE, but memory exhaustion attacks: 1e10 ** 1e10, "x" * 1e12, f"{0:1e9}", "%1e9d" % 0
+mult_eval_model.nodes.extend(['Mul', 'Mod'])
 
 class Expr():
     def __init__(self, expr, model=None, filename=None):

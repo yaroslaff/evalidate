@@ -23,7 +23,10 @@ __builtins__['eval']("print(1)")
 '"{0.__globals__[SECRET]}".format(one)',
 
 # resource exhaustion attacks
-'10 ** 10 ** 10'
+'10 ** 10 ** 10',
+'"x" * 1000000000000',
+'f"{0:1000000000}"',
+'"%1000000000d" % 0',
 ]
 
 boom = """
